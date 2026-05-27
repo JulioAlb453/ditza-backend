@@ -4,6 +4,7 @@ import (
 	"ditza/internal/point-transaction/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
 )
+
 func ToDomain(m Model) domain.PointTransaction {
 	return domain.PointTransaction{
 		ID:          valueobject.PointTransactionID(m.ID),

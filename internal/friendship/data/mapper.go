@@ -4,6 +4,7 @@ import (
 	"ditza/internal/friendship/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
 )
+
 func ToDomain(m Model) domain.Friendship {
 	return domain.Friendship{
 		ID:          valueobject.FriendshipID(m.ID),

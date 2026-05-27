@@ -4,6 +4,7 @@ import (
 	"ditza/internal/season/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
 )
+
 func ToDomain(m Model) domain.Season {
 	return domain.Season{
 		ID:        valueobject.SeasonID(m.ID),

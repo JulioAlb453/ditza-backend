@@ -1,9 +1,10 @@
 package data
 
 import (
-	"ditza/internal/user-cosmetic/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/user-cosmetic/domain"
 )
+
 func ToDomain(m Model) domain.UserCosmetic {
 	return domain.UserCosmetic{
 		UserID:      valueobject.UserID(m.UserID),

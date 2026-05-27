@@ -4,6 +4,7 @@ import (
 	"ditza/internal/pet/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
 )
+
 func ToDomain(m Model) domain.Pet {
 	return domain.Pet{
 		UserID:               valueobject.UserID(m.UserID),

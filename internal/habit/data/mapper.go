@@ -4,6 +4,7 @@ import (
 	"ditza/internal/habit/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
 )
+
 func ToDomain(m Model) domain.Habit {
 	return domain.Habit{
 		ID:                valueobject.HabitID(m.ID),

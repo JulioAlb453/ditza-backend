@@ -4,6 +4,7 @@ import (
 	"ditza/internal/season-score/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
 )
+
 func ToDomain(m Model) domain.SeasonScore {
 	return domain.SeasonScore{
 		UserID:    valueobject.UserID(m.UserID),

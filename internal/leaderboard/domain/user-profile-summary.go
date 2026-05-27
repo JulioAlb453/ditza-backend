@@ -2,8 +2,8 @@ package domain
 
 import (
 	petdomain "ditza/internal/pet/domain"
-	seasondomain "ditza/internal/season/domain"
 	seasonscoredomain "ditza/internal/season-score/domain"
+	seasondomain "ditza/internal/season/domain"
 	userdomain "ditza/internal/user/domain"
 )
 

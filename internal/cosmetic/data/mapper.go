@@ -4,6 +4,7 @@ import (
 	"ditza/internal/cosmetic/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
 )
+
 func ToDomain(m Model) domain.Cosmetic {
 	return domain.Cosmetic{
 		ID:         valueobject.CosmeticID(m.ID),
