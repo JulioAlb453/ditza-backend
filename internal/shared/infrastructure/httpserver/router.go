@@ -29,6 +29,7 @@ func NewRouter(controllers Controllers) *http.ServeMux {
 
 	// Auth/User
 	mux.HandleFunc("POST /auth/register", controllers.User.Register)
+	mux.HandleFunc("POST /auth/login", controllers.User.Login)
 	mux.HandleFunc("GET /me", controllers.User.GetMe)
 
 	// Habits

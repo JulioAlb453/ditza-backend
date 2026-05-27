@@ -42,6 +42,32 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
+	var request LoginRequestDTO
+	if err := httpapi.DecodeJSON(r, &request); err != nil {
+		httpapi.WriteJSON(w, http.StatusBadRequest, httpapi.ErrorResponse{
+			Code:    "INVALID_BODY",
+			Message: "cuerpo de petición inválido",
+		})
+		return
+	}
+
+	result, err := c.service.Login(r.Context(), userapp.LoginCommand{
+		Email:    request.Email,
+		Password: request.Password,
+	})
+	if err != nil {
+		httpapi.WriteError(w, err)
+		return
+	}
+
+	httpapi.WriteJSON(w, http.StatusOK, LoginResponseDTO{
+		UserID: result.UserID.String(),
+		Alias:  result.Alias,
+		Email:  result.Email,
+	})
+}
+
 func (c *Controller) GetMe(w http.ResponseWriter, r *http.Request) {
 	userID, err := httpapi.ReadUserIDFromHeader(r)
 	if err != nil {

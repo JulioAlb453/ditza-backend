@@ -21,6 +21,7 @@ import (
 	usercosmetichttp "ditza/internal/user-cosmetic/infrastructure/http"
 	userapp "ditza/internal/user/application"
 	userhttp "ditza/internal/user/infrastructure/http"
+	userpostgres "ditza/internal/user/infrastructure/postgres"
 )
 
 type Container struct {
@@ -29,11 +30,9 @@ type Container struct {
 }
 
 func NewContainer(db *sql.DB) *Container {
-	_ = db
-
 	unitOfWork := &stubrepo.UnitOfWorkStub{}
 
-	userRepository := &stubrepo.UserRepositoryStub{}
+	userRepository := userpostgres.New(db)
 	habitRepository := &stubrepo.HabitRepositoryStub{}
 	habitCompletionRepository := &stubrepo.HabitCompletionRepositoryStub{}
 	petRepository := &stubrepo.PetRepositoryStub{}

@@ -28,6 +28,17 @@ type RegisterResult struct {
 	Email  string
 }
 
+type LoginCommand struct {
+	Email    string
+	Password string
+}
+
+type LoginResult struct {
+	UserID valueobject.UserID
+	Alias  string
+	Email  string
+}
+
 func NewService(userRepository userdomain.Repository) *Service {
 	return &Service{userRepository: userRepository}
 }
@@ -71,6 +82,32 @@ func (s *Service) Register(ctx context.Context, command RegisterCommand) (result
 	}
 
 	return &RegisterResult{
+		UserID: userEntity.ID,
+		Alias:  userEntity.Alias,
+		Email:  userEntity.Email,
+	}, nil
+}
+
+func (s *Service) Login(ctx context.Context, command LoginCommand) (result *LoginResult, err error) {
+	tracker := monitoring.StartService(logger.ModelUser, "login", map[string]any{"email": command.Email})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(map[string]any{"user_id": result.UserID})
+	}()
+
+	email := strings.TrimSpace(strings.ToLower(command.Email))
+	userEntity, err := s.userRepository.FindByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if userEntity == nil || !password.Verify(userEntity.Password, command.Password) {
+		return nil, domainerror.New("INVALID_CREDENTIALS", "correo o contraseña incorrectos", domainerror.ErrUnauthorized)
+	}
+
+	return &LoginResult{
 		UserID: userEntity.ID,
 		Alias:  userEntity.Alias,
 		Email:  userEntity.Email,
