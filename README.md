@@ -12,6 +12,7 @@ API REST para **Ditza**, una app móvil de microhábitos con mascota virtual, ec
 | `godotenv` | Variables de entorno |
 | `bcrypt` (`golang.org/x/crypto`) | Hash de contraseñas |
 | `google/uuid` | IDs de usuario |
+| `golang-jwt/jwt` | Tokens JWT |
 
 ## Arquitectura
 
@@ -63,6 +64,8 @@ DB_NAME=ditza
 DB_SSLMODE=disable
 PORT=8080
 LOG_DIR=logs
+JWT_SECRET=cambia-este-secreto-por-uno-seguro-de-32-chars-min
+JWT_EXPIRATION_HOURS=72
 ```
 
 | Variable | Descripción | Default |
@@ -75,6 +78,8 @@ LOG_DIR=logs
 | `DB_SSLMODE` | Modo SSL | `disable` |
 | `PORT` | Puerto del API | `8080` |
 | `LOG_DIR` | Directorio de logs | `logs` |
+| `JWT_SECRET` | Secreto para firmar tokens (mín. 32 caracteres) | — (obligatorio) |
+| `JWT_EXPIRATION_HOURS` | Duración del token en horas | `72` |
 
 ### 3. Base de datos
 
@@ -117,9 +122,40 @@ curl http://localhost:8080/health
 | `POST` | `/auth/login` | No | Iniciar sesión |
 | `GET` | `/me` | Sí | Perfil del usuario autenticado |
 
+**Registro / Login — body de ejemplo:**
 
+```json
+{
+  "alias": "Juli",
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
 
-> Usa el `user_id` devuelto en el header `X-User-ID` para los endpoints protegidos (JWT pendiente).
+> En login solo se envían `email` y `password`.
+
+**Respuesta (201 registro / 200 login):**
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_at": "2026-05-29T23:00:00Z",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "alias": "Juli",
+  "email": "user@example.com"
+}
+```
+
+## Autenticación JWT
+
+Los endpoints protegidos requieren el header:
+
+```
+Authorization: Bearer <access_token>
+```
+
+El token se obtiene al registrarse o iniciar sesión. Expira según `JWT_EXPIRATION_HOURS` (default 72 h).
 
 ### Hábitos
 
@@ -176,14 +212,16 @@ Los archivos de log están en `.gitignore`.
 | Módulo | Repositorio PostgreSQL | HTTP |
 |---|---|---|
 | Usuario | ✅ Implementado | ✅ |
-| Hábitos | ❌ Stub | ✅ |
-| Completar hábito | ❌ Stub | ✅ |
-| Cosméticos / Tienda | ❌ Stub | ✅ |
-| Amistades | ❌ Stub | ✅ |
-| Temporada / Ranking | ❌ Stub | ✅ |
-| Mascota (pet) | ❌ Stub | ❌ (sin endpoint HTTP aún) |
+| Hábitos | ✅ Implementado | ✅ |
+| Completar hábito | ✅ Implementado | ✅ |
+| Cosméticos / Tienda | ✅ Implementado | ✅ |
+| Amistades | ✅ Implementado | ✅ |
+| Temporada / Ranking | ✅ Implementado | ✅ |
+| Mascota (pet) | ✅ Implementado | ❌ (sin endpoint HTTP; se usa al completar hábitos) |
+| Transacciones de puntos | ✅ Implementado | ❌ (indirecto vía tienda y hábitos) |
+| Puntos de temporada | ✅ Implementado | ❌ (indirecto vía ranking) |
 
-Los endpoints con repositorio stub responden **501 NOT_IMPLEMENTED** hasta que se conecte PostgreSQL real.
+Todos los endpoints HTTP usan repositorios PostgreSQL reales. Las operaciones transaccionales (completar hábito, comprar cosmético) usan `UnitOfWork` con transacciones de base de datos.
 
 ## Estructura del proyecto
 
@@ -218,7 +256,7 @@ ditza-backend/
 │           ├── password/
 │           ├── httpapi/
 │           ├── httpserver/
-│           └── stubrepo/
+│           └── postgres/       # UnitOfWork y helpers de transacción
 ├── .env                        # Variables locales (no commitear)
 ├── .gitignore
 ├── go.mod

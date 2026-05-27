@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"ditza/internal/shared/infrastructure/database"
 
@@ -10,9 +12,11 @@ import (
 )
 
 type Config struct {
-	Port     string
-	LogDir   string
-	Database database.Config
+	Port          string
+	LogDir        string
+	JWTSecret     string
+	JWTExpiration time.Duration
+	Database      database.Config
 }
 
 func LoadConfig() (Config, error) {
@@ -30,6 +34,20 @@ func LoadConfig() (Config, error) {
 	logDir := os.Getenv("LOG_DIR")
 	if logDir == "" {
 		logDir = "logs"
+	}
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		return Config{}, fmt.Errorf("JWT_SECRET es obligatorio en .env")
+	}
+
+	jwtExpirationHours := 72
+	if raw := os.Getenv("JWT_EXPIRATION_HOURS"); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed <= 0 {
+			return Config{}, fmt.Errorf("JWT_EXPIRATION_HOURS debe ser un entero positivo")
+		}
+		jwtExpirationHours = parsed
 	}
 
 	dbConfig := database.Config{
@@ -53,9 +71,11 @@ func LoadConfig() (Config, error) {
 	}
 
 	return Config{
-		Port:     port,
-		LogDir:   logDir,
-		Database: dbConfig,
+		Port:          port,
+		LogDir:        logDir,
+		JWTSecret:     jwtSecret,
+		JWTExpiration: time.Duration(jwtExpirationHours) * time.Hour,
+		Database:      dbConfig,
 	}, nil
 }
 

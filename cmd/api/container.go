@@ -5,20 +5,31 @@ import (
 
 	cosmeticapp "ditza/internal/cosmetic/application"
 	cosmetichttp "ditza/internal/cosmetic/infrastructure/http"
+	cosmeticpostgres "ditza/internal/cosmetic/infrastructure/postgres"
 	friendshipapp "ditza/internal/friendship/application"
 	friendshiphttp "ditza/internal/friendship/infrastructure/http"
+	friendshippostgres "ditza/internal/friendship/infrastructure/postgres"
 	habitcompletionapp "ditza/internal/habit-completion/application"
 	habitcompletionhttp "ditza/internal/habit-completion/infrastructure/http"
+	habitcompletionpostgres "ditza/internal/habit-completion/infrastructure/postgres"
 	habitapp "ditza/internal/habit/application"
 	habithttp "ditza/internal/habit/infrastructure/http"
+	habitpostgres "ditza/internal/habit/infrastructure/postgres"
 	leaderboardapp "ditza/internal/leaderboard/application"
 	leaderboardhttp "ditza/internal/leaderboard/infrastructure/http"
+	leaderboardpostgres "ditza/internal/leaderboard/infrastructure/postgres"
+	petpostgres "ditza/internal/pet/infrastructure/postgres"
+	pointtransactionpostgres "ditza/internal/point-transaction/infrastructure/postgres"
 	seasonapp "ditza/internal/season/application"
 	seasonhttp "ditza/internal/season/infrastructure/http"
+	seasonpostgres "ditza/internal/season/infrastructure/postgres"
+	seasonscorepostgres "ditza/internal/season-score/infrastructure/postgres"
 	"ditza/internal/shared/infrastructure/httpserver"
-	"ditza/internal/shared/infrastructure/stubrepo"
+	jwtprovider "ditza/internal/shared/infrastructure/jwt"
+	sharedpostgres "ditza/internal/shared/infrastructure/postgres"
 	usercosmeticapp "ditza/internal/user-cosmetic/application"
 	usercosmetichttp "ditza/internal/user-cosmetic/infrastructure/http"
+	usercosmeticpostgres "ditza/internal/user-cosmetic/infrastructure/postgres"
 	userapp "ditza/internal/user/application"
 	userhttp "ditza/internal/user/infrastructure/http"
 	userpostgres "ditza/internal/user/infrastructure/postgres"
@@ -29,20 +40,20 @@ type Container struct {
 	Controllers httpserver.Controllers
 }
 
-func NewContainer(db *sql.DB) *Container {
-	unitOfWork := &stubrepo.UnitOfWorkStub{}
+func NewContainer(db *sql.DB, tokenProvider *jwtprovider.Provider) *Container {
+	unitOfWork := sharedpostgres.NewUnitOfWork(db)
 
 	userRepository := userpostgres.New(db)
-	habitRepository := &stubrepo.HabitRepositoryStub{}
-	habitCompletionRepository := &stubrepo.HabitCompletionRepositoryStub{}
-	petRepository := &stubrepo.PetRepositoryStub{}
-	pointTransactionRepository := &stubrepo.PointTransactionRepositoryStub{}
-	seasonRepository := &stubrepo.SeasonRepositoryStub{}
-	seasonScoreRepository := &stubrepo.SeasonScoreRepositoryStub{}
-	cosmeticRepository := &stubrepo.CosmeticRepositoryStub{}
-	userCosmeticRepository := &stubrepo.UserCosmeticRepositoryStub{}
-	friendshipRepository := &stubrepo.FriendshipRepositoryStub{}
-	leaderboardRepository := &stubrepo.LeaderboardRepositoryStub{}
+	habitRepository := habitpostgres.New(db)
+	habitCompletionRepository := habitcompletionpostgres.New(db)
+	petRepository := petpostgres.New(db)
+	pointTransactionRepository := pointtransactionpostgres.New(db)
+	seasonRepository := seasonpostgres.New(db)
+	seasonScoreRepository := seasonscorepostgres.New(db)
+	cosmeticRepository := cosmeticpostgres.New(db)
+	userCosmeticRepository := usercosmeticpostgres.New(db)
+	friendshipRepository := friendshippostgres.New(db)
+	leaderboardRepository := leaderboardpostgres.New(db)
 
 	userService := userapp.NewService(userRepository)
 	habitService := habitapp.NewService(habitRepository)
@@ -71,7 +82,7 @@ func NewContainer(db *sql.DB) *Container {
 	return &Container{
 		DB: db,
 		Controllers: httpserver.Controllers{
-			User:            userhttp.NewController(userService),
+			User:            userhttp.NewController(userService, tokenProvider),
 			Habit:           habithttp.NewController(habitService),
 			HabitCompletion: habitcompletionhttp.NewController(habitCompletionService),
 			Cosmetic:        cosmetichttp.NewController(cosmeticService),

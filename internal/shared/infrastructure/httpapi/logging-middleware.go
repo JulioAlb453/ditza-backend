@@ -22,7 +22,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		startedAt := time.Now()
 		recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 
-		userID := r.Header.Get("X-User-ID")
+		userID := TryReadUserID(r)
 		next.ServeHTTP(recorder, r)
 
 		monitoring.HTTPRequest(
