@@ -8,6 +8,7 @@ import (
 	habitcompletionhttp "ditza/internal/habit-completion/infrastructure/http"
 	habithttp "ditza/internal/habit/infrastructure/http"
 	leaderboardhttp "ditza/internal/leaderboard/infrastructure/http"
+	pethttp "ditza/internal/pet/infrastructure/http"
 	seasonhttp "ditza/internal/season/infrastructure/http"
 	usercosmetichttp "ditza/internal/user-cosmetic/infrastructure/http"
 	userhttp "ditza/internal/user/infrastructure/http"
@@ -22,6 +23,7 @@ type Controllers struct {
 	Friendship      *friendshiphttp.Controller
 	Leaderboard     *leaderboardhttp.Controller
 	Season          *seasonhttp.Controller
+	Pet             *pethttp.Controller
 }
 
 func NewRouter(controllers Controllers) *http.ServeMux {
@@ -31,6 +33,11 @@ func NewRouter(controllers Controllers) *http.ServeMux {
 	mux.HandleFunc("POST /auth/register", controllers.User.Register)
 	mux.HandleFunc("POST /auth/login", controllers.User.Login)
 	mux.HandleFunc("GET /me", controllers.User.GetMe)
+	mux.HandleFunc("GET /users/search", controllers.User.Search)
+
+	// Pet
+	mux.HandleFunc("GET /pet", controllers.Pet.Get)
+	mux.HandleFunc("PATCH /pet/equip", controllers.Pet.Equip)
 
 	// Habits
 	mux.HandleFunc("GET /habits", controllers.Habit.List)

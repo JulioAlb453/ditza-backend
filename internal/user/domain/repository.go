@@ -12,4 +12,5 @@ type Repository interface {
 	FindByID(ctx context.Context, id valueobject.UserID) (*User, error)
 	FindByEmail(ctx context.Context, email string) (*User, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
+	SearchByAlias(ctx context.Context, aliasQuery string, excludeUserID valueobject.UserID, limit int) ([]User, error)
 }

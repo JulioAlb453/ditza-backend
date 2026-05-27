@@ -26,3 +26,8 @@ type UserProfileResponseDTO struct {
 	Email  string `json:"email"`
 	Coins  int    `json:"coins"`
 }
+
+type UserSearchResultDTO struct {
+	UserID string `json:"user_id"`
+	Alias  string `json:"alias"`
+}

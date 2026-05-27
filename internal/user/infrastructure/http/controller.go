@@ -109,6 +109,34 @@ func (c *Controller) GetMe(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *Controller) Search(w http.ResponseWriter, r *http.Request) {
+	userID, err := httpapi.ReadUserIDFromHeader(r)
+	if err != nil {
+		httpapi.WriteJSON(w, http.StatusUnauthorized, httpapi.ErrorResponse{
+			Code:    "UNAUTHORIZED",
+			Message: err.Error(),
+		})
+		return
+	}
+
+	aliasQuery := r.URL.Query().Get("alias")
+	results, err := c.service.SearchByAlias(r.Context(), userID, aliasQuery)
+	if err != nil {
+		httpapi.WriteError(w, err)
+		return
+	}
+
+	response := make([]UserSearchResultDTO, 0, len(results))
+	for _, item := range results {
+		response = append(response, UserSearchResultDTO{
+			UserID: item.UserID.String(),
+			Alias:  item.Alias,
+		})
+	}
+
+	httpapi.WriteJSON(w, http.StatusOK, response)
+}
+
 func (c *Controller) buildAuthResponse(userID valueobject.UserID, alias, email string) (AuthResponseDTO, error) {
 	token, expiresAt, err := c.tokenProvider.Generate(userID, email)
 	if err != nil {

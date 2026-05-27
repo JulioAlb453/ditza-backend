@@ -27,6 +27,8 @@ Guía de referencia que relaciona cada **tabla de PostgreSQL** con los **endpoin
 5. [Estado de persistencia](#estado-de-persistencia)
 6. [Consultas SQL útiles](#consultas-sql-útiles)
 
+> **Consultas desde pgAdmin / DBeaver / psql:** ver [`CONSULTAS-SQL.md`](./CONSULTAS-SQL.md) — guía completa por tabla para inspeccionar datos en PostgreSQL.
+
 ---
 
 ## Preparar la base de datos
@@ -138,6 +140,7 @@ $token = $auth.access_token
 | `POST` | `/auth/register` | No | `INSERT INTO users` |
 | `POST` | `/auth/login` | No | `SELECT` + verificar password |
 | `GET` | `/me` | 🔒 | `SELECT * FROM users WHERE id = ?` |
+| `GET` | `/users/search?alias=` | 🔒 | `SELECT id, alias FROM users WHERE alias ILIKE ?` |
 
 **Perfil del usuario autenticado:**
 
@@ -155,6 +158,21 @@ curl http://localhost:8080/me \
   "email": "juli@example.com",
   "coins": 0
 }
+```
+
+**Buscar usuarios por alias** (para enviar solicitudes de amistad):
+
+```bash
+curl "http://localhost:8080/users/search?alias=Juli" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Respuesta (200):**
+
+```json
+[
+  { "user_id": "550e8400-e29b-41d4-a716-446655440000", "alias": "Juli" }
+]
 ```
 
 ---
@@ -436,7 +454,37 @@ ORDER BY ss.points DESC;
 
 ### 9. `pets`
 
-Sin endpoint HTTP directo. La mascota se crea/actualiza al completar hábitos.
+| Método | Ruta | Auth | Operación SQL equivalente |
+|---|---|---|---|
+| `GET` | `/pet` | 🔒 | `SELECT * FROM pets WHERE user_id = ?` |
+| `PATCH` | `/pet/equip` | 🔒 | `UPDATE pets SET equipped_*_id = ?` |
+
+La mascota se crea al completar el primer hábito. Antes de eso, `GET /pet` responde **404**.
+
+**Obtener mascota:**
+
+```bash
+curl http://localhost:8080/pet \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Equipar cosmético** (debe estar en `user_cosmetics`):
+
+```bash
+curl -X PATCH http://localhost:8080/pet/equip \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"cosmetic_id": 1}'
+```
+
+**Desequipar ranura:**
+
+```bash
+curl -X PATCH http://localhost:8080/pet/equip \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"unequip": true, "slot": "hat"}'
+```
 
 **Ver mascota en SQL:**
 
@@ -510,7 +558,7 @@ curl http://localhost:8080/leaderboard/friends \
 | Amistad | `friendships` | ✅ | ✅ |
 | Temporada | `seasons` | ✅ | ✅ |
 | Puntos temporada | `season_scores` | ✅ | ❌ (indirecto) |
-| Mascota | `pets` | ✅ | ❌ (indirecto) |
+| Mascota | `pets` | ✅ | ✅ |
 | Transacciones | `point_transactions` | ✅ | ❌ (indirecto) |
 | Ranking | — | ✅ (consulta SQL) | ✅ |
 

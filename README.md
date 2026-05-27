@@ -29,6 +29,8 @@ internal/{entidad}/
 
 cmd/api/           → bootstrap (config, container, server, main)
 db/schema.sql      → esquema PostgreSQL
+db/README.md       → peticiones API por entidad
+db/CONSULTAS-SQL.md → consultas SQL para pgAdmin / DBeaver / psql
 ```
 
 ### Entidades
@@ -121,6 +123,7 @@ curl http://localhost:8080/health
 | `POST` | `/auth/register` | No | Registrar usuario |
 | `POST` | `/auth/login` | No | Iniciar sesión |
 | `GET` | `/me` | Sí | Perfil del usuario autenticado |
+| `GET` | `/users/search?alias=` | Sí | Buscar usuarios por alias (mín. 2 caracteres) |
 
 **Registro / Login — body de ejemplo:**
 
@@ -156,6 +159,25 @@ Authorization: Bearer <access_token>
 ```
 
 El token se obtiene al registrarse o iniciar sesión. Expira según `JWT_EXPIRATION_HOURS` (default 72 h).
+
+### Mascota
+
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| `GET` | `/pet` | Sí | Obtener mascota (404 si aún no completó un hábito) |
+| `PATCH` | `/pet/equip` | Sí | Equipar o desequipar cosmético del inventario |
+
+**Equipar:**
+
+```json
+{ "cosmetic_id": 1 }
+```
+
+**Desequipar:**
+
+```json
+{ "unequip": true, "slot": "hat" }
+```
 
 ### Hábitos
 
@@ -217,7 +239,7 @@ Los archivos de log están en `.gitignore`.
 | Cosméticos / Tienda | ✅ Implementado | ✅ |
 | Amistades | ✅ Implementado | ✅ |
 | Temporada / Ranking | ✅ Implementado | ✅ |
-| Mascota (pet) | ✅ Implementado | ❌ (sin endpoint HTTP; se usa al completar hábitos) |
+| Mascota (pet) | ✅ Implementado | ✅ |
 | Transacciones de puntos | ✅ Implementado | ❌ (indirecto vía tienda y hábitos) |
 | Puntos de temporada | ✅ Implementado | ❌ (indirecto vía ranking) |
 
@@ -234,7 +256,9 @@ ditza-backend/
 │   ├── database.go
 │   └── server.go
 ├── db/
-│   └── schema.sql
+│   ├── schema.sql
+│   ├── README.md           # API ↔ tablas
+│   └── CONSULTAS-SQL.md    # Inspección de datos en PostgreSQL
 ├── internal/
 │   ├── user/
 │   ├── habit/

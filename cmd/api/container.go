@@ -18,6 +18,8 @@ import (
 	leaderboardapp "ditza/internal/leaderboard/application"
 	leaderboardhttp "ditza/internal/leaderboard/infrastructure/http"
 	leaderboardpostgres "ditza/internal/leaderboard/infrastructure/postgres"
+	petapp "ditza/internal/pet/application"
+	pethttp "ditza/internal/pet/infrastructure/http"
 	petpostgres "ditza/internal/pet/infrastructure/postgres"
 	pointtransactionpostgres "ditza/internal/point-transaction/infrastructure/postgres"
 	seasonapp "ditza/internal/season/application"
@@ -78,6 +80,7 @@ func NewContainer(db *sql.DB, tokenProvider *jwtprovider.Provider) *Container {
 	friendshipService := friendshipapp.NewService(friendshipRepository)
 	leaderboardService := leaderboardapp.NewService(seasonRepository, leaderboardRepository)
 	seasonService := seasonapp.NewService(seasonRepository)
+	petService := petapp.NewService(petRepository, cosmeticRepository, userCosmeticRepository)
 
 	return &Container{
 		DB: db,
@@ -90,6 +93,7 @@ func NewContainer(db *sql.DB, tokenProvider *jwtprovider.Provider) *Container {
 			Friendship:      friendshiphttp.NewController(friendshipService),
 			Leaderboard:     leaderboardhttp.NewController(leaderboardService),
 			Season:          seasonhttp.NewController(seasonService),
+			Pet:             pethttp.NewController(petService),
 		},
 	}
 }

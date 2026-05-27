@@ -122,6 +122,51 @@ func (r *Repository) ExistsByEmail(ctx context.Context, email string) (bool, err
 	return exists, nil
 }
 
+func (r *Repository) SearchByAlias(ctx context.Context, aliasQuery string, excludeUserID valueobject.UserID, limit int) ([]userdomain.User, error) {
+	monitoring.Repository(logger.ModelUser, "search_by_alias", map[string]any{"alias": aliasQuery})
+
+	if limit <= 0 {
+		limit = 20
+	}
+
+	rows, err := sharedpostgres.ExecutorFromContext(ctx, r.db).QueryContext(ctx, `
+		SELECT id, alias, email, password, coins, created_at, updated_at
+		FROM users
+		WHERE alias ILIKE '%' || $1 || '%'
+		  AND id <> $2
+		ORDER BY alias
+		LIMIT $3`,
+		aliasQuery,
+		excludeUserID.String(),
+		limit,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("no se pudo buscar usuarios por alias: %w", err)
+	}
+	defer rows.Close()
+
+	var models []data.Model
+	for rows.Next() {
+		var model data.Model
+		if err := rows.Scan(
+			&model.ID,
+			&model.Alias,
+			&model.Email,
+			&model.Password,
+			&model.Coins,
+			&model.CreatedAt,
+			&model.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("no se pudo leer usuario en búsqueda: %w", err)
+		}
+		models = append(models, model)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando búsqueda de usuarios: %w", err)
+	}
+	return data.ToDomainList(models), nil
+}
+
 func (r *Repository) queryOne(ctx context.Context, whereClause string, arg any) (*data.Model, error) {
 	query := fmt.Sprintf(`
 		SELECT id, alias, email, password, coins, created_at, updated_at

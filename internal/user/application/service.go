@@ -133,3 +133,40 @@ func (s *Service) GetByID(ctx context.Context, userID valueobject.UserID) (userE
 	}
 	return userEntity, nil
 }
+
+const defaultSearchLimit = 20
+
+type SearchUsersResult struct {
+	UserID valueobject.UserID
+	Alias  string
+}
+
+func (s *Service) SearchByAlias(ctx context.Context, requesterID valueobject.UserID, aliasQuery string) (results []SearchUsersResult, err error) {
+	tracker := monitoring.StartService(logger.ModelUser, "search_by_alias", map[string]any{"alias": aliasQuery})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(map[string]any{"count": len(results)})
+	}()
+
+	aliasQuery = strings.TrimSpace(aliasQuery)
+	if len(aliasQuery) < 2 {
+		return nil, domainerror.New("INVALID_SEARCH_QUERY", "el alias debe tener al menos 2 caracteres", domainerror.ErrInvalidInput)
+	}
+
+	users, err := s.userRepository.SearchByAlias(ctx, aliasQuery, requesterID, defaultSearchLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	results = make([]SearchUsersResult, 0, len(users))
+	for _, userEntity := range users {
+		results = append(results, SearchUsersResult{
+			UserID: userEntity.ID,
+			Alias:  userEntity.Alias,
+		})
+	}
+	return results, nil
+}
