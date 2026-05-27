@@ -1,7 +1,5 @@
 package valueobject
 
-type UserID uint64
-
 type HabitID uint64
 
 type HabitCompletionID uint64

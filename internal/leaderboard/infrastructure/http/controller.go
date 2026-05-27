@@ -31,8 +31,8 @@ func (c *Controller) GetFriendRanking(w http.ResponseWriter, r *http.Request) {
 	response := make([]FriendRankingEntryDTO, 0, len(ranking))
 	for _, item := range ranking {
 		response = append(response, FriendRankingEntryDTO{
-			UserID:        uint64(item.UserID),
-			Name:          item.Name,
+			UserID:        item.UserID.String(),
+			Alias:         item.Alias,
 			SeasonPoints:  item.SeasonPoints,
 			Rank:          item.Rank,
 			IsCurrentUser: item.IsCurrentUser,

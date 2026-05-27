@@ -3,9 +3,12 @@ package data
 import (
 	"ditza/internal/friendship/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/shared/infrastructure/logger"
+	"ditza/internal/shared/infrastructure/monitoring"
 )
 
 func ToDomain(m Model) domain.Friendship {
+	monitoring.Mapper(logger.ModelFriendship, "to_domain", m.ID)
 	return domain.Friendship{
 		ID:          valueobject.FriendshipID(m.ID),
 		RequesterID: valueobject.UserID(m.RequesterID),
@@ -17,10 +20,11 @@ func ToDomain(m Model) domain.Friendship {
 }
 
 func ToModel(e domain.Friendship) Model {
+	monitoring.Mapper(logger.ModelFriendship, "to_model", e.ID)
 	return Model{
 		ID:          uint64(e.ID),
-		RequesterID: uint64(e.RequesterID),
-		AddresseeID: uint64(e.AddresseeID),
+		RequesterID: string(e.RequesterID),
+		AddresseeID: string(e.AddresseeID),
 		Status:      e.Status.String(),
 		CreatedAt:   e.CreatedAt,
 		RespondedAt: e.RespondedAt,

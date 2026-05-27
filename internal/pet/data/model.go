@@ -3,7 +3,7 @@ package data
 import "time"
 
 type Model struct {
-	UserID               uint64    `db:"user_id"`
+	UserID               string    `db:"user_id"`
 	Name                 string    `db:"name"`
 	Level                int       `db:"level"`
 	XP                   int       `db:"xp"`

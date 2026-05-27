@@ -10,48 +10,44 @@ import (
 )
 
 type User struct {
-	ID         valueobject.UserID
-	Name       string
-	Email      string
-	Password   string
-	Timezone   string
-	Coins      int
-	FriendCode string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID        valueobject.UserID
+	Alias     string
+	Email     string
+	Password  string
+	Coins     int
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-func New(name, email, passwordHash, timezone, friendCode string) (*User, error) {
-	name = strings.TrimSpace(name)
+func New(id valueobject.UserID, alias, email, hashedPassword string) (*User, error) {
+	alias = strings.TrimSpace(alias)
 	email = strings.TrimSpace(strings.ToLower(email))
-	timezone = strings.TrimSpace(timezone)
 
-	if name == "" {
-		return nil, domainerror.New("INVALID_USER_NAME", "el nombre es obligatorio", domainerror.ErrInvalidInput)
+	if id.IsZero() {
+		return nil, domainerror.New("INVALID_USER_ID", "el id de usuario es obligatorio", domainerror.ErrInvalidInput)
 	}
-	if utf8.RuneCountInString(name) > valueobject.MaxUserNameLength {
-		return nil, domainerror.New("INVALID_USER_NAME", "el nombre excede la longitud máxima", domainerror.ErrInvalidInput)
+	if alias == "" {
+		return nil, domainerror.New("INVALID_USER_ALIAS", "el alias es obligatorio", domainerror.ErrInvalidInput)
+	}
+	if utf8.RuneCountInString(alias) > valueobject.MaxUserAliasLength {
+		return nil, domainerror.New("INVALID_USER_ALIAS", "el alias excede la longitud máxima", domainerror.ErrInvalidInput)
 	}
 	if email == "" {
 		return nil, domainerror.New("INVALID_EMAIL", "el correo es obligatorio", domainerror.ErrInvalidInput)
 	}
-	if timezone == "" {
-		return nil, domainerror.New("INVALID_TIMEZONE", "la zona horaria es obligatoria", domainerror.ErrInvalidInput)
-	}
-	if friendCode == "" {
-		return nil, domainerror.New("INVALID_FRIEND_CODE", "el código de amigo es obligatorio", domainerror.ErrInvalidInput)
+	if hashedPassword == "" {
+		return nil, domainerror.New("INVALID_PASSWORD", "la contraseña es obligatoria", domainerror.ErrInvalidInput)
 	}
 
 	now := time.Now().UTC()
 	return &User{
-		Name:       name,
-		Email:      email,
-		Password:   passwordHash,
-		Timezone:   timezone,
-		FriendCode: friendCode,
-		Coins:      0,
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		ID:        id,
+		Alias:     alias,
+		Email:     email,
+		Password:  hashedPassword,
+		Coins:     0,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}, nil
 }
 

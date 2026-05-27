@@ -32,9 +32,15 @@ func (c *Controller) SendRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	addresseeID, err := valueobject.ParseUserID(request.AddresseeID)
+	if err != nil {
+		httpapi.WriteJSON(w, http.StatusBadRequest, httpapi.ErrorResponse{Code: "INVALID_ID", Message: "id de usuario inválido"})
+		return
+	}
+
 	friendshipEntity, err := c.service.SendRequest(r.Context(), friendshipapp.SendRequestCommand{
 		RequesterID: userID,
-		AddresseeID: valueobject.UserID(request.AddresseeID),
+		AddresseeID: addresseeID,
 	})
 	if err != nil {
 		httpapi.WriteError(w, err)
@@ -139,8 +145,8 @@ func parseFriendshipID(w http.ResponseWriter, r *http.Request) (valueobject.Frie
 func toFriendshipDTO(item *friendshipdomain.Friendship) FriendshipResponseDTO {
 	response := FriendshipResponseDTO{
 		FriendshipID: uint64(item.ID),
-		RequesterID:  uint64(item.RequesterID),
-		AddresseeID:  uint64(item.AddresseeID),
+		RequesterID:  item.RequesterID.String(),
+		AddresseeID:  item.AddresseeID.String(),
 		Status:       item.Status.String(),
 		CreatedAt:    item.CreatedAt.UTC().Format(time.RFC3339),
 	}

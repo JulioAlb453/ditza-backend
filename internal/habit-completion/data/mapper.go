@@ -3,9 +3,12 @@ package data
 import (
 	"ditza/internal/habit-completion/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/shared/infrastructure/logger"
+	"ditza/internal/shared/infrastructure/monitoring"
 )
 
 func ToDomain(m Model) domain.HabitCompletion {
+	monitoring.Mapper(logger.ModelHabitCompletion, "to_domain", m.ID)
 	return domain.HabitCompletion{
 		ID:                  valueobject.HabitCompletionID(m.ID),
 		HabitID:             valueobject.HabitID(m.HabitID),
@@ -20,10 +23,11 @@ func ToDomain(m Model) domain.HabitCompletion {
 }
 
 func ToModel(e domain.HabitCompletion) Model {
+	monitoring.Mapper(logger.ModelHabitCompletion, "to_model", e.ID)
 	return Model{
 		ID:                  uint64(e.ID),
 		HabitID:             uint64(e.HabitID),
-		UserID:              uint64(e.UserID),
+		UserID:              string(e.UserID),
 		CompletedAt:         e.CompletedAt,
 		Note:                e.Note,
 		Emoji:               e.Emoji,

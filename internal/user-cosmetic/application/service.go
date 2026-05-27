@@ -8,6 +8,8 @@ import (
 	domainerror "ditza/internal/shared/domain/error"
 	unitofwork "ditza/internal/shared/domain/unit-of-work"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/shared/infrastructure/logger"
+	"ditza/internal/shared/infrastructure/monitoring"
 	usercosmeticdomain "ditza/internal/user-cosmetic/domain"
 	userdomain "ditza/internal/user/domain"
 )
@@ -46,9 +48,21 @@ func NewService(
 	}
 }
 
-func (s *Service) Buy(ctx context.Context, command BuyCosmeticCommand) (*BuyCosmeticResult, error) {
-	result := &BuyCosmeticResult{}
-	err := s.withinTransaction(ctx, func(txCtx context.Context) error {
+func (s *Service) Buy(ctx context.Context, command BuyCosmeticCommand) (result *BuyCosmeticResult, err error) {
+	tracker := monitoring.StartService(logger.ModelUserCosmetic, "buy", map[string]any{
+		"user_id":     command.UserID,
+		"cosmetic_id": command.CosmeticID,
+	})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(map[string]any{"wallet_coins": result.WalletCoins})
+	}()
+
+	result = &BuyCosmeticResult{}
+	err = s.withinTransaction(ctx, func(txCtx context.Context) error {
 		userEntity, err := s.userRepository.FindByID(txCtx, command.UserID)
 		if err != nil {
 			return err
@@ -113,8 +127,18 @@ func (s *Service) Buy(ctx context.Context, command BuyCosmeticCommand) (*BuyCosm
 	return result, nil
 }
 
-func (s *Service) ListInventory(ctx context.Context, userID valueobject.UserID) ([]usercosmeticdomain.UserCosmetic, error) {
-	return s.userCosmeticRepository.FindByUserID(ctx, userID)
+func (s *Service) ListInventory(ctx context.Context, userID valueobject.UserID) (inventory []usercosmeticdomain.UserCosmetic, err error) {
+	tracker := monitoring.StartService(logger.ModelUserCosmetic, "list_inventory", map[string]any{"user_id": userID})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(map[string]any{"count": len(inventory)})
+	}()
+
+	inventory, err = s.userCosmeticRepository.FindByUserID(ctx, userID)
+	return inventory, err
 }
 
 func (s *Service) withinTransaction(ctx context.Context, fn func(context.Context) error) error {

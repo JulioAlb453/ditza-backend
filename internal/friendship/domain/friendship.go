@@ -67,7 +67,7 @@ func (f *Friendship) Reject(responderID valueobject.UserID) error {
 
 func (f *Friendship) FriendIDFor(userID valueobject.UserID) (valueobject.UserID, bool) {
 	if !f.IsAccepted() {
-		return 0, false
+		return "", false
 	}
 	if f.RequesterID == userID {
 		return f.AddresseeID, true
@@ -75,5 +75,5 @@ func (f *Friendship) FriendIDFor(userID valueobject.UserID) (valueobject.UserID,
 	if f.AddresseeID == userID {
 		return f.RequesterID, true
 	}
-	return 0, false
+	return "", false
 }

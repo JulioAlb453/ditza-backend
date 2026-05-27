@@ -2,12 +2,13 @@ package application
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"strings"
 
 	domainerror "ditza/internal/shared/domain/error"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/shared/infrastructure/logger"
+	"ditza/internal/shared/infrastructure/monitoring"
+	"ditza/internal/shared/infrastructure/password"
 	userdomain "ditza/internal/user/domain"
 )
 
@@ -16,25 +17,31 @@ type Service struct {
 }
 
 type RegisterCommand struct {
-	Name         string
-	Email        string
-	PasswordHash string
-	Timezone     string
+	Alias    string
+	Email    string
+	Password string
 }
 
 type RegisterResult struct {
-	UserID     valueobject.UserID
-	Name       string
-	Email      string
-	Timezone   string
-	FriendCode string
+	UserID valueobject.UserID
+	Alias  string
+	Email  string
 }
 
 func NewService(userRepository userdomain.Repository) *Service {
 	return &Service{userRepository: userRepository}
 }
 
-func (s *Service) Register(ctx context.Context, command RegisterCommand) (*RegisterResult, error) {
+func (s *Service) Register(ctx context.Context, command RegisterCommand) (result *RegisterResult, err error) {
+	tracker := monitoring.StartService(logger.ModelUser, "register", map[string]any{"email": command.Email})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(map[string]any{"user_id": result.UserID})
+	}()
+
 	email := strings.TrimSpace(strings.ToLower(command.Email))
 	exists, err := s.userRepository.ExistsByEmail(ctx, email)
 	if err != nil {
@@ -44,17 +51,16 @@ func (s *Service) Register(ctx context.Context, command RegisterCommand) (*Regis
 		return nil, domainerror.New("USER_ALREADY_EXISTS", "el correo ya está registrado", domainerror.ErrInvalidInput)
 	}
 
-	friendCode, err := generateFriendCode()
+	hashedPassword, err := password.Hash(command.Password)
 	if err != nil {
 		return nil, err
 	}
 
 	userEntity, err := userdomain.New(
-		command.Name,
+		valueobject.NewUserID(),
+		command.Alias,
 		email,
-		command.PasswordHash,
-		command.Timezone,
-		friendCode,
+		hashedPassword,
 	)
 	if err != nil {
 		return nil, err
@@ -65,16 +71,23 @@ func (s *Service) Register(ctx context.Context, command RegisterCommand) (*Regis
 	}
 
 	return &RegisterResult{
-		UserID:     userEntity.ID,
-		Name:       userEntity.Name,
-		Email:      userEntity.Email,
-		Timezone:   userEntity.Timezone,
-		FriendCode: userEntity.FriendCode,
+		UserID: userEntity.ID,
+		Alias:  userEntity.Alias,
+		Email:  userEntity.Email,
 	}, nil
 }
 
-func (s *Service) GetByID(ctx context.Context, userID valueobject.UserID) (*userdomain.User, error) {
-	userEntity, err := s.userRepository.FindByID(ctx, userID)
+func (s *Service) GetByID(ctx context.Context, userID valueobject.UserID) (userEntity *userdomain.User, err error) {
+	tracker := monitoring.StartService(logger.ModelUser, "get_by_id", map[string]any{"user_id": userID})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(nil)
+	}()
+
+	userEntity, err = s.userRepository.FindByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,12 +95,4 @@ func (s *Service) GetByID(ctx context.Context, userID valueobject.UserID) (*user
 		return nil, domainerror.New("USER_NOT_FOUND", "usuario no encontrado", domainerror.ErrNotFound)
 	}
 	return userEntity, nil
-}
-
-func generateFriendCode() (string, error) {
-	bytes := make([]byte, valueobject.FriendCodeLength/2)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", domainerror.New("FRIEND_CODE_GENERATION_FAILED", "no se pudo generar el código de amigo", err)
-	}
-	return strings.ToUpper(hex.EncodeToString(bytes)), nil
 }

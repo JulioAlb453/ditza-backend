@@ -1,18 +1,16 @@
 CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(60) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alias VARCHAR(60) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    timezone VARCHAR(64) NOT NULL,
+    password TEXT NOT NULL,
     coins INTEGER NOT NULL DEFAULT 0 CHECK (coins >= 0),
-    friend_code VARCHAR(8) NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS habits (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(80) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     current_streak INTEGER NOT NULL DEFAULT 0 CHECK (current_streak >= 0),
@@ -25,7 +23,7 @@ CREATE TABLE IF NOT EXISTS habits (
 CREATE TABLE IF NOT EXISTS habit_completions (
     id BIGSERIAL PRIMARY KEY,
     habit_id BIGINT NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     completed_at TIMESTAMPTZ NOT NULL,
     -- AT TIME ZONE 'UTC' hace la expresión IMMUTABLE (requerido en columnas GENERATED)
     completion_date DATE GENERATED ALWAYS AS ((completed_at AT TIME ZONE 'UTC')::date) STORED,
@@ -49,7 +47,7 @@ CREATE TABLE IF NOT EXISTS cosmetics (
 );
 
 CREATE TABLE IF NOT EXISTS pets (
-    user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(30) NOT NULL,
     level INTEGER NOT NULL DEFAULT 1 CHECK (level >= 1),
     xp INTEGER NOT NULL DEFAULT 0 CHECK (xp >= 0),
@@ -63,7 +61,7 @@ CREATE TABLE IF NOT EXISTS pets (
 );
 
 CREATE TABLE IF NOT EXISTS user_cosmetics (
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     cosmetic_id BIGINT NOT NULL REFERENCES cosmetics(id) ON DELETE CASCADE,
     purchased_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (user_id, cosmetic_id)
@@ -71,8 +69,8 @@ CREATE TABLE IF NOT EXISTS user_cosmetics (
 
 CREATE TABLE IF NOT EXISTS friendships (
     id BIGSERIAL PRIMARY KEY,
-    requester_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    addressee_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    requester_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    addressee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     responded_at TIMESTAMPTZ NULL,
@@ -92,7 +90,7 @@ CREATE TABLE IF NOT EXISTS seasons (
 );
 
 CREATE TABLE IF NOT EXISTS season_scores (
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     season_id BIGINT NOT NULL REFERENCES seasons(id) ON DELETE CASCADE,
     points INTEGER NOT NULL DEFAULT 0 CHECK (points >= 0),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -101,7 +99,7 @@ CREATE TABLE IF NOT EXISTS season_scores (
 
 CREATE TABLE IF NOT EXISTS point_transactions (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     type VARCHAR(30) NOT NULL CHECK (type IN ('habit', 'streak_bonus', 'note_bonus', 'purchase', 'season_reset')),
     coins_delta INTEGER NOT NULL DEFAULT 0,
     season_delta INTEGER NOT NULL DEFAULT 0,

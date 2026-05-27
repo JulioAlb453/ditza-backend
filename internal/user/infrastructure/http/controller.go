@@ -26,10 +26,9 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := c.service.Register(r.Context(), userapp.RegisterCommand{
-		Name:         request.Name,
-		Email:        request.Email,
-		PasswordHash: request.PasswordHash,
-		Timezone:     request.Timezone,
+		Alias:    request.Alias,
+		Email:    request.Email,
+		Password: request.Password,
 	})
 	if err != nil {
 		httpapi.WriteError(w, err)
@@ -37,11 +36,9 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpapi.WriteJSON(w, http.StatusCreated, RegisterResponseDTO{
-		UserID:     uint64(result.UserID),
-		Name:       result.Name,
-		Email:      result.Email,
-		Timezone:   result.Timezone,
-		FriendCode: result.FriendCode,
+		UserID: result.UserID.String(),
+		Alias:  result.Alias,
+		Email:  result.Email,
 	})
 }
 
@@ -62,11 +59,9 @@ func (c *Controller) GetMe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpapi.WriteJSON(w, http.StatusOK, UserProfileResponseDTO{
-		UserID:     uint64(userEntity.ID),
-		Name:       userEntity.Name,
-		Email:      userEntity.Email,
-		Timezone:   userEntity.Timezone,
-		Coins:      userEntity.Coins,
-		FriendCode: userEntity.FriendCode,
+		UserID: userEntity.ID.String(),
+		Alias:  userEntity.Alias,
+		Email:  userEntity.Email,
+		Coins:  userEntity.Coins,
 	})
 }

@@ -4,7 +4,7 @@ import "time"
 
 type Model struct {
 	ID          uint64    `db:"id"`
-	UserID      uint64    `db:"user_id"`
+	UserID      string    `db:"user_id"`
 	Type        string    `db:"type"`
 	CoinsDelta  int       `db:"coins_delta"`
 	SeasonDelta int       `db:"season_delta"`

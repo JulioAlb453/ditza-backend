@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"ditza/internal/shared/infrastructure/httpapi"
 	"ditza/internal/shared/infrastructure/httpserver"
 )
 
@@ -20,6 +21,6 @@ func NewHTTPServer(config Config, container *Container) *http.Server {
 
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%s", config.Port),
-		Handler: mux,
+		Handler: httpapi.LoggingMiddleware(mux),
 	}
 }

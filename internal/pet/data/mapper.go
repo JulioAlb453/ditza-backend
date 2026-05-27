@@ -3,9 +3,12 @@ package data
 import (
 	"ditza/internal/pet/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/shared/infrastructure/logger"
+	"ditza/internal/shared/infrastructure/monitoring"
 )
 
 func ToDomain(m Model) domain.Pet {
+	monitoring.Mapper(logger.ModelPet, "to_domain", m.UserID)
 	return domain.Pet{
 		UserID:               valueobject.UserID(m.UserID),
 		Name:                 m.Name,
@@ -22,8 +25,9 @@ func ToDomain(m Model) domain.Pet {
 }
 
 func ToModel(e domain.Pet) Model {
+	monitoring.Mapper(logger.ModelPet, "to_model", e.UserID)
 	return Model{
-		UserID:               uint64(e.UserID),
+		UserID:               string(e.UserID),
 		Name:                 e.Name,
 		Level:                e.Level,
 		XP:                   e.XP,

@@ -7,6 +7,8 @@ import (
 	seasondomain "ditza/internal/season/domain"
 	domainerror "ditza/internal/shared/domain/error"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/shared/infrastructure/logger"
+	"ditza/internal/shared/infrastructure/monitoring"
 )
 
 type Service struct {
@@ -24,7 +26,16 @@ func NewService(
 	}
 }
 
-func (s *Service) GetFriendRanking(ctx context.Context, userID valueobject.UserID) ([]leaderboarddomain.FriendEntry, error) {
+func (s *Service) GetFriendRanking(ctx context.Context, userID valueobject.UserID) (entries []leaderboarddomain.FriendEntry, err error) {
+	tracker := monitoring.StartService(logger.ModelLeaderboard, "get_friend_ranking", map[string]any{"user_id": userID})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(map[string]any{"count": len(entries)})
+	}()
+
 	activeSeason, err := s.seasonRepository.FindActive(ctx)
 	if err != nil {
 		return nil, err
@@ -32,5 +43,6 @@ func (s *Service) GetFriendRanking(ctx context.Context, userID valueobject.UserI
 	if activeSeason == nil {
 		return nil, domainerror.New("SEASON_NOT_ACTIVE", "no hay una temporada activa", domainerror.ErrSeasonNotActive)
 	}
-	return s.leaderboardRepository.GetFriendRanking(ctx, userID, activeSeason.ID)
+	entries, err = s.leaderboardRepository.GetFriendRanking(ctx, userID, activeSeason.ID)
+	return entries, err
 }

@@ -13,6 +13,8 @@ import (
 	domainerror "ditza/internal/shared/domain/error"
 	unitofwork "ditza/internal/shared/domain/unit-of-work"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/shared/infrastructure/logger"
+	"ditza/internal/shared/infrastructure/monitoring"
 	userdomain "ditza/internal/user/domain"
 )
 
@@ -67,14 +69,29 @@ func NewService(
 	}
 }
 
-func (s *Service) Complete(ctx context.Context, command CompleteHabitCommand) (*CompleteHabitResult, error) {
+func (s *Service) Complete(ctx context.Context, command CompleteHabitCommand) (result *CompleteHabitResult, err error) {
+	tracker := monitoring.StartService(logger.ModelHabitCompletion, "complete", map[string]any{
+		"user_id":  command.UserID,
+		"habit_id": command.HabitID,
+	})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(map[string]any{
+			"coins_earned":         result.CoinsEarned,
+			"season_points_earned": result.SeasonPointsEarned,
+		})
+	}()
+
 	completedAt := command.CompletedAt.UTC()
 	if completedAt.IsZero() {
 		completedAt = time.Now().UTC()
 	}
 
-	result := &CompleteHabitResult{}
-	err := s.withinTransaction(ctx, func(txCtx context.Context) error {
+	result = &CompleteHabitResult{}
+	err = s.withinTransaction(ctx, func(txCtx context.Context) error {
 		habitEntity, err := s.habitRepository.FindByID(txCtx, command.HabitID)
 		if err != nil {
 			return err

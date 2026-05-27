@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+
+	"ditza/internal/shared/infrastructure/logger"
 )
 
 func main() {
@@ -9,6 +11,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("error cargando configuración: %v", err)
 	}
+
+	if err := logger.Init(config.LogDir); err != nil {
+		log.Fatalf("error inicializando logs: %v", err)
+	}
+	defer func() {
+		if err := logger.Close(); err != nil {
+			log.Printf("error cerrando logs: %v", err)
+		}
+	}()
 
 	db, err := OpenDatabase(config.Database)
 	if err != nil {
@@ -19,8 +30,12 @@ func main() {
 	container := NewContainer(db)
 	server := NewHTTPServer(config, container)
 
-	log.Printf("Conexión a PostgreSQL establecida (%s:%s/%s)", config.Database.Host, config.Database.Port, config.Database.Name)
-	log.Printf("API escuchando en http://localhost%s", server.Addr)
+	logger.App().Info("conexión a PostgreSQL establecida",
+		"host", config.Database.Host,
+		"port", config.Database.Port,
+		"database", config.Database.Name,
+	)
+	logger.App().Info("API escuchando", "addr", server.Addr, "url", "http://localhost"+server.Addr)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("error iniciando servidor: %v", err)
 	}

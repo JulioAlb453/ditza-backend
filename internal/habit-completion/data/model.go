@@ -5,7 +5,7 @@ import "time"
 type Model struct {
 	ID                  uint64    `db:"id"`
 	HabitID             uint64    `db:"habit_id"`
-	UserID              uint64    `db:"user_id"`
+	UserID              string    `db:"user_id"`
 	CompletedAt         time.Time `db:"completed_at"`
 	Note                *string   `db:"note"`
 	Emoji               *string   `db:"emoji"`

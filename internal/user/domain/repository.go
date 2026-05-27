@@ -11,6 +11,5 @@ type Repository interface {
 	Update(ctx context.Context, entity *User) error
 	FindByID(ctx context.Context, id valueobject.UserID) (*User, error)
 	FindByEmail(ctx context.Context, email string) (*User, error)
-	FindByFriendCode(ctx context.Context, friendCode string) (*User, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 }

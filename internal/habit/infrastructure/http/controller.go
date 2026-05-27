@@ -34,7 +34,7 @@ func (c *Controller) List(w http.ResponseWriter, r *http.Request) {
 	for _, habit := range habits {
 		item := HabitResponseDTO{
 			HabitID:       uint64(habit.ID),
-			UserID:        uint64(habit.UserID),
+			UserID:        habit.UserID.String(),
 			Title:         habit.Title,
 			IsActive:      habit.IsActive,
 			CurrentStreak: habit.CurrentStreak,
@@ -73,7 +73,7 @@ func (c *Controller) Create(w http.ResponseWriter, r *http.Request) {
 
 	httpapi.WriteJSON(w, http.StatusCreated, HabitResponseDTO{
 		HabitID:       uint64(habit.ID),
-		UserID:        uint64(habit.UserID),
+		UserID:        habit.UserID.String(),
 		Title:         habit.Title,
 		IsActive:      habit.IsActive,
 		CurrentStreak: habit.CurrentStreak,

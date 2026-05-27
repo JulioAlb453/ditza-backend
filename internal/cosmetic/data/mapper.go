@@ -3,9 +3,12 @@ package data
 import (
 	"ditza/internal/cosmetic/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
+	"ditza/internal/shared/infrastructure/logger"
+	"ditza/internal/shared/infrastructure/monitoring"
 )
 
 func ToDomain(m Model) domain.Cosmetic {
+	monitoring.Mapper(logger.ModelCosmetic, "to_domain", m.ID)
 	return domain.Cosmetic{
 		ID:         valueobject.CosmeticID(m.ID),
 		Name:       m.Name,
@@ -19,6 +22,7 @@ func ToDomain(m Model) domain.Cosmetic {
 }
 
 func ToModel(e domain.Cosmetic) Model {
+	monitoring.Mapper(logger.ModelCosmetic, "to_model", e.ID)
 	return Model{
 		ID:         uint64(e.ID),
 		Name:       e.Name,

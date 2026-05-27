@@ -4,9 +4,9 @@ const (
 	MaxActiveHabitsPerUser = 5
 	MaxHabitTitleLength    = 80
 	MaxPetNameLength       = 30
-	MaxUserNameLength      = 60
+	MaxUserAliasLength     = 60
+	MinPasswordLength      = 8
 	MaxNoteLength          = 140
-	FriendCodeLength       = 8
 
 	BaseCompletionCoins        = 10
 	BaseCompletionSeasonPoints = 10

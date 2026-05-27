@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	Port     string
+	LogDir   string
 	Database database.Config
 }
 
@@ -24,6 +25,11 @@ func LoadConfig() (Config, error) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
+	}
+
+	logDir := os.Getenv("LOG_DIR")
+	if logDir == "" {
+		logDir = "logs"
 	}
 
 	dbConfig := database.Config{
@@ -48,6 +54,7 @@ func LoadConfig() (Config, error) {
 
 	return Config{
 		Port:     port,
+		LogDir:   logDir,
 		Database: dbConfig,
 	}, nil
 }
