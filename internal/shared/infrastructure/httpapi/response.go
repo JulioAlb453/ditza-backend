@@ -34,6 +34,8 @@ func WriteError(w http.ResponseWriter, err error) {
 			status = http.StatusNotFound
 		case errors.Is(domainErr, domainerror.ErrUnauthorized):
 			status = http.StatusUnauthorized
+		case errors.Is(domainErr, domainerror.ErrNotImplemented):
+			status = http.StatusNotImplemented
 		}
 		WriteJSON(w, status, ErrorResponse{
 			Code:    domainErr.Code,

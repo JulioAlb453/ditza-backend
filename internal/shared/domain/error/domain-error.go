@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrNotFound              = errors.New("recurso no encontrado")
 	ErrUnauthorized          = errors.New("no autorizado")
+	ErrNotImplemented        = errors.New("funcionalidad no implementada")
 	ErrInvalidInput          = errors.New("datos de entrada inválidos")
 	ErrHabitLimitReached     = errors.New("límite de hábitos activos alcanzado")
 	ErrHabitAlreadyCompleted = errors.New("el hábito ya fue completado hoy")
