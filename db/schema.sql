@@ -1,9 +1,3 @@
--- Ditza - Esquema inicial PostgreSQL
--- Ejecutar en una base de datos vacía:
--- psql -U <user> -d <database> -f db/schema.sql
-
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(60) NOT NULL,
@@ -33,7 +27,8 @@ CREATE TABLE IF NOT EXISTS habit_completions (
     habit_id BIGINT NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     completed_at TIMESTAMPTZ NOT NULL,
-    completion_date DATE GENERATED ALWAYS AS (DATE(completed_at)) STORED,
+    -- AT TIME ZONE 'UTC' hace la expresión IMMUTABLE (requerido en columnas GENERATED)
+    completion_date DATE GENERATED ALWAYS AS ((completed_at AT TIME ZONE 'UTC')::date) STORED,
     note VARCHAR(140) NULL,
     emoji VARCHAR(16) NULL,
     coins_awarded INTEGER NOT NULL,
@@ -142,5 +137,3 @@ FROM (
         ('Lentes Retro', 'accessory', 180, 'common', 'acc_retro_glasses', TRUE)
 ) AS seed(name, slot, price_coins, rarity, asset_key, is_active)
 WHERE NOT EXISTS (SELECT 1 FROM cosmetics);
-
-COMMIT;

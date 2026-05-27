@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+
 	cosmeticapp "ditza/internal/cosmetic/application"
 	cosmetichttp "ditza/internal/cosmetic/infrastructure/http"
 	friendshipapp "ditza/internal/friendship/application"
@@ -22,10 +24,13 @@ import (
 )
 
 type Container struct {
+	DB          *sql.DB
 	Controllers httpserver.Controllers
 }
 
-func NewContainer() *Container {
+func NewContainer(db *sql.DB) *Container {
+	_ = db
+
 	unitOfWork := &stubrepo.UnitOfWorkStub{}
 
 	userRepository := &stubrepo.UserRepositoryStub{}
@@ -65,6 +70,7 @@ func NewContainer() *Container {
 	seasonService := seasonapp.NewService(seasonRepository)
 
 	return &Container{
+		DB: db,
 		Controllers: httpserver.Controllers{
 			User:            userhttp.NewController(userService),
 			Habit:           habithttp.NewController(habitService),
