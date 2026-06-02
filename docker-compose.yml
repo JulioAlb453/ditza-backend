@@ -1,0 +1,47 @@
+services:
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: ditza-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
+      POSTGRES_DB: ${DB_NAME:-ditza}
+    volumes:
+      - ditza_pg_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PUBLISH_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-ditza}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ditza-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-ditza}
+      DB_SSLMODE: disable
+      PORT: ${PORT:-8080}
+      LOG_DIR: /tmp/ditza-logs
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-72}
+    ports:
+      - "${PORT:-8080}:8080"
+    restart: unless-stopped
+
+volumes:
+  ditza_pg_data:
