@@ -15,8 +15,17 @@ type Service struct {
 }
 
 type CreateHabitCommand struct {
-	UserID valueobject.UserID
-	Title  string
+	UserID       valueobject.UserID
+	Title        string
+	Description  string
+	Emoji        string
+	Category     string
+	Color        string
+	Frequency    string
+	TargetCount  int
+	TargetUnit   string
+	Difficulty   string
+	ReminderTime *string
 }
 
 func NewService(habitRepository habitdomain.Repository) *Service {
@@ -41,7 +50,18 @@ func (s *Service) Create(ctx context.Context, command CreateHabitCommand) (habit
 		return nil, domainerror.New("HABIT_LIMIT_REACHED", "límite de hábitos activos alcanzado", domainerror.ErrHabitLimitReached)
 	}
 
-	habitEntity, err = habitdomain.New(command.UserID, command.Title)
+	habitEntity, err = habitdomain.New(command.UserID, habitdomain.HabitConfig{
+		Title:        command.Title,
+		Description:  command.Description,
+		Emoji:        command.Emoji,
+		Category:     command.Category,
+		Color:        command.Color,
+		Frequency:    command.Frequency,
+		TargetCount:  command.TargetCount,
+		TargetUnit:   command.TargetUnit,
+		Difficulty:   command.Difficulty,
+		ReminderTime: command.ReminderTime,
+	})
 	if err != nil {
 		return nil, err
 	}
