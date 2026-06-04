@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"fmt"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -13,6 +15,15 @@ type Habit struct {
 	ID                valueobject.HabitID
 	UserID            valueobject.UserID
 	Title             string
+	Description       string
+	Emoji             string
+	Category          string
+	Color             string
+	Frequency         string
+	TargetCount       int
+	TargetUnit        string
+	Difficulty        string
+	ReminderTime      *string
 	IsActive          bool
 	CurrentStreak     int
 	BestStreak        int
@@ -21,25 +32,149 @@ type Habit struct {
 	UpdatedAt         time.Time
 }
 
-func New(userID valueobject.UserID, title string) (*Habit, error) {
-	title = strings.TrimSpace(title)
-	if title == "" {
-		return nil, domainerror.New("INVALID_HABIT_TITLE", "el título del hábito es obligatorio", domainerror.ErrInvalidInput)
-	}
-	if utf8.RuneCountInString(title) > valueobject.MaxHabitTitleLength {
-		return nil, domainerror.New("INVALID_HABIT_TITLE", "el título del hábito excede la longitud máxima", domainerror.ErrInvalidInput)
+type HabitConfig struct {
+	Title        string
+	Description  string
+	Emoji        string
+	Category     string
+	Color        string
+	Frequency    string
+	TargetCount  int
+	TargetUnit   string
+	Difficulty   string
+	ReminderTime *string
+}
+
+const (
+	DefaultHabitCategory    = "general"
+	DefaultHabitColor       = "green"
+	DefaultHabitFrequency   = "daily"
+	DefaultHabitTargetCount = 1
+	DefaultHabitTargetUnit  = "veces"
+	DefaultHabitDifficulty  = "medium"
+)
+
+var reminderTimePattern = regexp.MustCompile(`^([01][0-9]|2[0-3]):[0-5][0-9]$`)
+
+func New(userID valueobject.UserID, config HabitConfig) (*Habit, error) {
+	normalized, err := normalizeConfig(config)
+	if err != nil {
+		return nil, err
 	}
 
 	now := time.Now().UTC()
 	return &Habit{
 		UserID:        userID,
-		Title:         title,
+		Title:         normalized.Title,
+		Description:   normalized.Description,
+		Emoji:         normalized.Emoji,
+		Category:      normalized.Category,
+		Color:         normalized.Color,
+		Frequency:     normalized.Frequency,
+		TargetCount:   normalized.TargetCount,
+		TargetUnit:    normalized.TargetUnit,
+		Difficulty:    normalized.Difficulty,
+		ReminderTime:  normalized.ReminderTime,
 		IsActive:      true,
 		CurrentStreak: 0,
 		BestStreak:    0,
 		CreatedAt:     now,
 		UpdatedAt:     now,
 	}, nil
+}
+
+func normalizeConfig(config HabitConfig) (HabitConfig, error) {
+	config.Title = strings.TrimSpace(config.Title)
+	if config.Title == "" {
+		return HabitConfig{}, domainerror.New("INVALID_HABIT_TITLE", "el título del hábito es obligatorio", domainerror.ErrInvalidInput)
+	}
+	if utf8.RuneCountInString(config.Title) > valueobject.MaxHabitTitleLength {
+		return HabitConfig{}, domainerror.New("INVALID_HABIT_TITLE", "el título del hábito excede la longitud máxima", domainerror.ErrInvalidInput)
+	}
+
+	config.Description = strings.TrimSpace(config.Description)
+	if utf8.RuneCountInString(config.Description) > valueobject.MaxHabitDescriptionLength {
+		return HabitConfig{}, domainerror.New("INVALID_HABIT_DESCRIPTION", "la descripción del hábito excede la longitud máxima", domainerror.ErrInvalidInput)
+	}
+
+	config.Emoji = strings.TrimSpace(config.Emoji)
+	if utf8.RuneCountInString(config.Emoji) > valueobject.MaxHabitEmojiLength {
+		return HabitConfig{}, domainerror.New("INVALID_HABIT_EMOJI", "el emoji del hábito excede la longitud máxima", domainerror.ErrInvalidInput)
+	}
+
+	config.Category = defaultIfBlank(config.Category, DefaultHabitCategory)
+	if err := validateLength("category", config.Category, valueobject.MaxHabitCategoryLength); err != nil {
+		return HabitConfig{}, err
+	}
+
+	config.Color = defaultIfBlank(config.Color, DefaultHabitColor)
+	if err := validateLength("color", config.Color, valueobject.MaxHabitColorLength); err != nil {
+		return HabitConfig{}, err
+	}
+
+	config.Frequency = defaultIfBlank(config.Frequency, DefaultHabitFrequency)
+	if !isOneOf(config.Frequency, "daily", "weekly", "specific_days") {
+		return HabitConfig{}, domainerror.New("INVALID_HABIT_FREQUENCY", "la frecuencia debe ser daily, weekly o specific_days", domainerror.ErrInvalidInput)
+	}
+
+	if config.TargetCount == 0 {
+		config.TargetCount = DefaultHabitTargetCount
+	}
+	if config.TargetCount < 0 {
+		return HabitConfig{}, domainerror.New("INVALID_HABIT_TARGET", "la meta del hábito debe ser mayor a cero", domainerror.ErrInvalidInput)
+	}
+
+	config.TargetUnit = defaultIfBlank(config.TargetUnit, DefaultHabitTargetUnit)
+	if err := validateLength("target_unit", config.TargetUnit, valueobject.MaxHabitTargetUnitLength); err != nil {
+		return HabitConfig{}, err
+	}
+
+	config.Difficulty = defaultIfBlank(config.Difficulty, DefaultHabitDifficulty)
+	if !isOneOf(config.Difficulty, "easy", "medium", "hard") {
+		return HabitConfig{}, domainerror.New("INVALID_HABIT_DIFFICULTY", "la dificultad debe ser easy, medium o hard", domainerror.ErrInvalidInput)
+	}
+
+	if config.ReminderTime != nil {
+		reminderTime := strings.TrimSpace(*config.ReminderTime)
+		if reminderTime == "" {
+			config.ReminderTime = nil
+		} else {
+			if !reminderTimePattern.MatchString(reminderTime) {
+				return HabitConfig{}, domainerror.New("INVALID_HABIT_REMINDER_TIME", "la hora de recordatorio debe tener formato HH:MM", domainerror.ErrInvalidInput)
+			}
+			config.ReminderTime = &reminderTime
+		}
+	}
+
+	return config, nil
+}
+
+func defaultIfBlank(value, fallback string) string {
+	value = strings.TrimSpace(strings.ToLower(value))
+	if value == "" {
+		return fallback
+	}
+	return value
+}
+
+func validateLength(field, value string, max int) error {
+	if utf8.RuneCountInString(value) <= max {
+		return nil
+	}
+	return domainerror.New(
+		fmt.Sprintf("INVALID_HABIT_%s", strings.ToUpper(field)),
+		fmt.Sprintf("el campo %s del hábito excede la longitud máxima", field),
+		domainerror.ErrInvalidInput,
+	)
+}
+
+func isOneOf(value string, allowed ...string) bool {
+	for _, item := range allowed {
+		if value == item {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *Habit) BelongsTo(userID valueobject.UserID) bool {

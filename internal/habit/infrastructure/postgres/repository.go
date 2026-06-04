@@ -32,12 +32,22 @@ func (r *Repository) Create(ctx context.Context, entity *habitdomain.Habit) erro
 	model := data.ToModel(*entity)
 	err := sharedpostgres.ExecutorFromContext(ctx, r.db).QueryRowContext(ctx, `
 		INSERT INTO habits (
-			user_id, title, is_active, current_streak, best_streak,
-			last_completed_date, created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			user_id, title, description, emoji, category, color, frequency,
+			target_count, target_unit, difficulty, reminder_time, is_active,
+			current_streak, best_streak, last_completed_date, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		RETURNING id`,
 		model.UserID,
 		model.Title,
+		model.Description,
+		model.Emoji,
+		model.Category,
+		model.Color,
+		model.Frequency,
+		model.TargetCount,
+		model.TargetUnit,
+		model.Difficulty,
+		model.ReminderTime,
 		model.IsActive,
 		model.CurrentStreak,
 		model.BestStreak,
@@ -59,11 +69,22 @@ func (r *Repository) Update(ctx context.Context, entity *habitdomain.Habit) erro
 	model := data.ToModel(*entity)
 	result, err := sharedpostgres.ExecutorFromContext(ctx, r.db).ExecContext(ctx, `
 		UPDATE habits
-		SET title = $2, is_active = $3, current_streak = $4, best_streak = $5,
-		    last_completed_date = $6, updated_at = $7
+		SET title = $2, description = $3, emoji = $4, category = $5, color = $6,
+		    frequency = $7, target_count = $8, target_unit = $9, difficulty = $10,
+		    reminder_time = $11, is_active = $12, current_streak = $13, best_streak = $14,
+		    last_completed_date = $15, updated_at = $16
 		WHERE id = $1`,
 		model.ID,
 		model.Title,
+		model.Description,
+		model.Emoji,
+		model.Category,
+		model.Color,
+		model.Frequency,
+		model.TargetCount,
+		model.TargetUnit,
+		model.Difficulty,
+		model.ReminderTime,
 		model.IsActive,
 		model.CurrentStreak,
 		model.BestStreak,
@@ -122,8 +143,9 @@ func (r *Repository) CountActiveByUserID(ctx context.Context, userID valueobject
 
 func (r *Repository) queryOne(ctx context.Context, whereClause string, arg any) (*data.Model, error) {
 	query := fmt.Sprintf(`
-		SELECT id, user_id, title, is_active, current_streak, best_streak,
-		       last_completed_date, created_at, updated_at
+		SELECT id, user_id, title, description, emoji, category, color, frequency,
+		       target_count, target_unit, difficulty, reminder_time, is_active,
+		       current_streak, best_streak, last_completed_date, created_at, updated_at
 		FROM habits %s`, whereClause)
 
 	var model data.Model
@@ -131,6 +153,15 @@ func (r *Repository) queryOne(ctx context.Context, whereClause string, arg any) 
 		&model.ID,
 		&model.UserID,
 		&model.Title,
+		&model.Description,
+		&model.Emoji,
+		&model.Category,
+		&model.Color,
+		&model.Frequency,
+		&model.TargetCount,
+		&model.TargetUnit,
+		&model.Difficulty,
+		&model.ReminderTime,
 		&model.IsActive,
 		&model.CurrentStreak,
 		&model.BestStreak,
@@ -149,8 +180,9 @@ func (r *Repository) queryOne(ctx context.Context, whereClause string, arg any) 
 
 func (r *Repository) queryList(ctx context.Context, whereClause string, args ...any) ([]habitdomain.Habit, error) {
 	query := fmt.Sprintf(`
-		SELECT id, user_id, title, is_active, current_streak, best_streak,
-		       last_completed_date, created_at, updated_at
+		SELECT id, user_id, title, description, emoji, category, color, frequency,
+		       target_count, target_unit, difficulty, reminder_time, is_active,
+		       current_streak, best_streak, last_completed_date, created_at, updated_at
 		FROM habits %s`, whereClause)
 
 	rows, err := sharedpostgres.ExecutorFromContext(ctx, r.db).QueryContext(ctx, query, args...)
@@ -166,6 +198,15 @@ func (r *Repository) queryList(ctx context.Context, whereClause string, args ...
 			&model.ID,
 			&model.UserID,
 			&model.Title,
+			&model.Description,
+			&model.Emoji,
+			&model.Category,
+			&model.Color,
+			&model.Frequency,
+			&model.TargetCount,
+			&model.TargetUnit,
+			&model.Difficulty,
+			&model.ReminderTime,
 			&model.IsActive,
 			&model.CurrentStreak,
 			&model.BestStreak,

@@ -93,6 +93,7 @@ psql -U postgres -d ditza -f db/schema.sql
 ```
 
 > Si ya tenías un esquema anterior (con `BIGSERIAL` en usuarios), recrea la BD o migra manualmente antes de ejecutar el script.
+> Para una BD existente previa a los campos interactivos de hábitos, ejecuta `psql -U postgres -d ditza -f db/migrations/001_add_habit_interactive_fields.sql`.
 
 ## Ejecución
 
@@ -187,6 +188,25 @@ El token se obtiene al registrarse o iniciar sesión. Expira según `JWT_EXPIRAT
 | `POST` | `/habits` | Sí | Crear hábito |
 | `DELETE` | `/habits/{id}` | Sí | Desactivar hábito |
 | `PATCH` | `/habits/{id}/complete` | Sí | Completar hábito |
+
+**Crear hábito — body de ejemplo:**
+
+```json
+{
+  "title": "Leer",
+  "description": "Leer 10 páginas antes de dormir",
+  "emoji": "📚",
+  "category": "estudio",
+  "color": "blue",
+  "frequency": "daily",
+  "target_count": 10,
+  "target_unit": "páginas",
+  "difficulty": "medium",
+  "reminder_time": "21:00"
+}
+```
+
+Campos opcionales: `description`, `emoji`, `category`, `color`, `frequency`, `target_count`, `target_unit`, `difficulty`, `reminder_time`. Si solo se envía `title`, el backend aplica valores por defecto. `frequency` acepta `daily`, `weekly` o `specific_days`; `difficulty` acepta `easy`, `medium` o `hard`; `reminder_time` usa formato `HH:MM`.
 
 ### Tienda / Cosméticos
 

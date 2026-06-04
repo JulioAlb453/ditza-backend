@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	habitapp "ditza/internal/habit/application"
+	habitdomain "ditza/internal/habit/domain"
 	valueobject "ditza/internal/shared/domain/value-object"
 	"ditza/internal/shared/infrastructure/httpapi"
 )
@@ -32,18 +33,7 @@ func (c *Controller) List(w http.ResponseWriter, r *http.Request) {
 
 	response := make([]HabitResponseDTO, 0, len(habits))
 	for _, habit := range habits {
-		item := HabitResponseDTO{
-			HabitID:       uint64(habit.ID),
-			UserID:        habit.UserID.String(),
-			Title:         habit.Title,
-			IsActive:      habit.IsActive,
-			CurrentStreak: habit.CurrentStreak,
-			BestStreak:    habit.BestStreak,
-		}
-		if habit.LastCompletedDate != nil {
-			item.LastCompletedDate = habit.LastCompletedDate.UTC().Format("2006-01-02")
-		}
-		response = append(response, item)
+		response = append(response, toHabitResponseDTO(habit))
 	}
 
 	httpapi.WriteJSON(w, http.StatusOK, response)
@@ -63,22 +53,48 @@ func (c *Controller) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	habit, err := c.service.Create(r.Context(), habitapp.CreateHabitCommand{
-		UserID: userID,
-		Title:  request.Title,
+		UserID:       userID,
+		Title:        request.Title,
+		Description:  request.Description,
+		Emoji:        request.Emoji,
+		Category:     request.Category,
+		Color:        request.Color,
+		Frequency:    request.Frequency,
+		TargetCount:  request.TargetCount,
+		TargetUnit:   request.TargetUnit,
+		Difficulty:   request.Difficulty,
+		ReminderTime: request.ReminderTime,
 	})
 	if err != nil {
 		httpapi.WriteError(w, err)
 		return
 	}
 
-	httpapi.WriteJSON(w, http.StatusCreated, HabitResponseDTO{
+	httpapi.WriteJSON(w, http.StatusCreated, toHabitResponseDTO(*habit))
+}
+
+func toHabitResponseDTO(habit habitdomain.Habit) HabitResponseDTO {
+	item := HabitResponseDTO{
 		HabitID:       uint64(habit.ID),
 		UserID:        habit.UserID.String(),
 		Title:         habit.Title,
+		Description:   habit.Description,
+		Emoji:         habit.Emoji,
+		Category:      habit.Category,
+		Color:         habit.Color,
+		Frequency:     habit.Frequency,
+		TargetCount:   habit.TargetCount,
+		TargetUnit:    habit.TargetUnit,
+		Difficulty:    habit.Difficulty,
+		ReminderTime:  habit.ReminderTime,
 		IsActive:      habit.IsActive,
 		CurrentStreak: habit.CurrentStreak,
 		BestStreak:    habit.BestStreak,
-	})
+	}
+	if habit.LastCompletedDate != nil {
+		item.LastCompletedDate = habit.LastCompletedDate.UTC().Format("2006-01-02")
+	}
+	return item
 }
 
 func (c *Controller) Deactivate(w http.ResponseWriter, r *http.Request) {
