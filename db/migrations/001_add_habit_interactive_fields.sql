@@ -6,7 +6,7 @@ ALTER TABLE habits
     ADD COLUMN IF NOT EXISTS target_count INTEGER NOT NULL DEFAULT 1,
     ADD COLUMN IF NOT EXISTS target_unit VARCHAR(30) NOT NULL DEFAULT 'veces',
     ADD COLUMN IF NOT EXISTS difficulty VARCHAR(20) NOT NULL DEFAULT 'medium',
-    ADD COLUMN IF NOT EXISTS reminder_time VARCHAR(5) NULL;
+    ADD COLUMN IF NOT EXISTS reminder_time VARCHAR(5) NOT NULL DEFAULT '';
 
 DO $$
 BEGIN
@@ -31,7 +31,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_habits_reminder_time') THEN
         ALTER TABLE habits
             ADD CONSTRAINT chk_habits_reminder_time
-            CHECK (reminder_time IS NULL OR reminder_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$') NOT VALID;
+            CHECK (reminder_time = '' OR reminder_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$') NOT VALID;
     END IF;
 END $$;
 

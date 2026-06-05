@@ -22,7 +22,7 @@ type Habit struct {
 	TargetCount       int
 	TargetUnit        string
 	Difficulty        string
-	ReminderTime      *string
+	ReminderTime      string
 	IsActive          bool
 	CurrentStreak     int
 	BestStreak        int
@@ -40,7 +40,7 @@ type HabitConfig struct {
 	TargetCount  int
 	TargetUnit   string
 	Difficulty   string
-	ReminderTime *string
+	ReminderTime string
 }
 
 const (
@@ -126,16 +126,9 @@ func normalizeConfig(config HabitConfig) (HabitConfig, error) {
 		return HabitConfig{}, domainerror.New("INVALID_HABIT_DIFFICULTY", "la dificultad debe ser easy, medium o hard", domainerror.ErrInvalidInput)
 	}
 
-	if config.ReminderTime != nil {
-		reminderTime := strings.TrimSpace(*config.ReminderTime)
-		if reminderTime == "" {
-			config.ReminderTime = nil
-		} else {
-			if !reminderTimePattern.MatchString(reminderTime) {
-				return HabitConfig{}, domainerror.New("INVALID_HABIT_REMINDER_TIME", "la hora de recordatorio debe tener formato HH:MM", domainerror.ErrInvalidInput)
-			}
-			config.ReminderTime = &reminderTime
-		}
+	config.ReminderTime = strings.TrimSpace(config.ReminderTime)
+	if config.ReminderTime != "" && !reminderTimePattern.MatchString(config.ReminderTime) {
+		return HabitConfig{}, domainerror.New("INVALID_HABIT_REMINDER_TIME", "la hora de recordatorio debe tener formato HH:MM", domainerror.ErrInvalidInput)
 	}
 
 	return config, nil

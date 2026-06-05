@@ -24,7 +24,7 @@ type CreateHabitCommand struct {
 	TargetCount  int
 	TargetUnit   string
 	Difficulty   string
-	ReminderTime *string
+	ReminderTime string
 }
 
 func NewService(habitRepository habitdomain.Repository) *Service {

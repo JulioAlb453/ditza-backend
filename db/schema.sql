@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS habits (
     target_count INTEGER NOT NULL DEFAULT 1 CHECK (target_count > 0),
     target_unit VARCHAR(30) NOT NULL DEFAULT 'veces',
     difficulty VARCHAR(20) NOT NULL DEFAULT 'medium' CHECK (difficulty IN ('easy', 'medium', 'hard')),
-    reminder_time VARCHAR(5) NULL CHECK (reminder_time IS NULL OR reminder_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'),
+    reminder_time VARCHAR(5) NOT NULL DEFAULT '' CHECK (reminder_time = '' OR reminder_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     current_streak INTEGER NOT NULL DEFAULT 0 CHECK (current_streak >= 0),
     best_streak INTEGER NOT NULL DEFAULT 0 CHECK (best_streak >= 0),

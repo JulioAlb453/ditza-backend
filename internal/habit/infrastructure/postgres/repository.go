@@ -142,7 +142,7 @@ func (r *Repository) CountActiveByUserID(ctx context.Context, userID valueobject
 func (r *Repository) queryOne(ctx context.Context, whereClause string, arg any) (*data.Model, error) {
 	query := fmt.Sprintf(`
 		SELECT id, user_id, title, description, category, color, frequency,
-		       target_count, target_unit, difficulty, reminder_time, is_active,
+		       target_count, target_unit, difficulty, COALESCE(reminder_time, ''), is_active,
 		       current_streak, best_streak, last_completed_date, created_at, updated_at
 		FROM habits %s`, whereClause)
 
@@ -178,7 +178,7 @@ func (r *Repository) queryOne(ctx context.Context, whereClause string, arg any) 
 func (r *Repository) queryList(ctx context.Context, whereClause string, args ...any) ([]habitdomain.Habit, error) {
 	query := fmt.Sprintf(`
 		SELECT id, user_id, title, description, category, color, frequency,
-		       target_count, target_unit, difficulty, reminder_time, is_active,
+		       target_count, target_unit, difficulty, COALESCE(reminder_time, ''), is_active,
 		       current_streak, best_streak, last_completed_date, created_at, updated_at
 		FROM habits %s`, whereClause)
 

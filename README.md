@@ -205,7 +205,7 @@ El token se obtiene al registrarse o iniciar sesión. Expira según `JWT_EXPIRAT
 }
 ```
 
-Campos opcionales: `description`, `category`, `color`, `frequency`, `target_count`, `target_unit`, `difficulty`, `reminder_time`. Si solo se envía `title`, el backend aplica valores por defecto. `frequency` acepta `daily`, `weekly` o `specific_days`; `difficulty` acepta `easy`, `medium` o `hard`; `reminder_time` usa formato `HH:MM`.
+Campos opcionales: `description`, `category`, `color`, `frequency`, `target_count`, `target_unit`, `difficulty`, `reminder_time`. Si solo se envía `title`, el backend aplica valores por defecto. `frequency` acepta `daily`, `weekly` o `specific_days`; `difficulty` acepta `easy`, `medium` o `hard`; `reminder_time` es string y puede omitirse, enviarse vacío (`""`) o usar formato `HH:MM`.
 
 ### Tienda / Cosméticos
 
