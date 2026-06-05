@@ -7,7 +7,6 @@ type Model struct {
 	UserID            string     `db:"user_id"`
 	Title             string     `db:"title"`
 	Description       string     `db:"description"`
-	Emoji             string     `db:"emoji"`
 	Category          string     `db:"category"`
 	Color             string     `db:"color"`
 	Frequency         string     `db:"frequency"`

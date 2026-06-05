@@ -1,0 +1,2 @@
+ALTER TABLE habits
+    DROP COLUMN IF EXISTS emoji;

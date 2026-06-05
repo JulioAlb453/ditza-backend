@@ -16,7 +16,6 @@ type Habit struct {
 	UserID            valueobject.UserID
 	Title             string
 	Description       string
-	Emoji             string
 	Category          string
 	Color             string
 	Frequency         string
@@ -35,7 +34,6 @@ type Habit struct {
 type HabitConfig struct {
 	Title        string
 	Description  string
-	Emoji        string
 	Category     string
 	Color        string
 	Frequency    string
@@ -67,7 +65,6 @@ func New(userID valueobject.UserID, config HabitConfig) (*Habit, error) {
 		UserID:        userID,
 		Title:         normalized.Title,
 		Description:   normalized.Description,
-		Emoji:         normalized.Emoji,
 		Category:      normalized.Category,
 		Color:         normalized.Color,
 		Frequency:     normalized.Frequency,
@@ -95,11 +92,6 @@ func normalizeConfig(config HabitConfig) (HabitConfig, error) {
 	config.Description = strings.TrimSpace(config.Description)
 	if utf8.RuneCountInString(config.Description) > valueobject.MaxHabitDescriptionLength {
 		return HabitConfig{}, domainerror.New("INVALID_HABIT_DESCRIPTION", "la descripción del hábito excede la longitud máxima", domainerror.ErrInvalidInput)
-	}
-
-	config.Emoji = strings.TrimSpace(config.Emoji)
-	if utf8.RuneCountInString(config.Emoji) > valueobject.MaxHabitEmojiLength {
-		return HabitConfig{}, domainerror.New("INVALID_HABIT_EMOJI", "el emoji del hábito excede la longitud máxima", domainerror.ErrInvalidInput)
 	}
 
 	config.Category = defaultIfBlank(config.Category, DefaultHabitCategory)

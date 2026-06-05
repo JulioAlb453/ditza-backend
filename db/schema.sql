@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS habits (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(80) NOT NULL,
     description VARCHAR(160) NOT NULL DEFAULT '',
-    emoji VARCHAR(16) NOT NULL DEFAULT '',
     category VARCHAR(40) NOT NULL DEFAULT 'general',
     color VARCHAR(24) NOT NULL DEFAULT 'green',
     frequency VARCHAR(20) NOT NULL DEFAULT 'daily' CHECK (frequency IN ('daily', 'weekly', 'specific_days')),

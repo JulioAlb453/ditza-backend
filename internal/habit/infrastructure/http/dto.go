@@ -3,7 +3,6 @@ package http
 type CreateHabitRequestDTO struct {
 	Title        string  `json:"title"`
 	Description  string  `json:"description,omitempty"`
-	Emoji        string  `json:"emoji,omitempty"`
 	Category     string  `json:"category,omitempty"`
 	Color        string  `json:"color,omitempty"`
 	Frequency    string  `json:"frequency,omitempty"`
@@ -18,7 +17,6 @@ type HabitResponseDTO struct {
 	UserID            string  `json:"user_id"`
 	Title             string  `json:"title"`
 	Description       string  `json:"description"`
-	Emoji             string  `json:"emoji"`
 	Category          string  `json:"category"`
 	Color             string  `json:"color"`
 	Frequency         string  `json:"frequency"`

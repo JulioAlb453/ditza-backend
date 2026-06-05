@@ -18,7 +18,6 @@ type CreateHabitCommand struct {
 	UserID       valueobject.UserID
 	Title        string
 	Description  string
-	Emoji        string
 	Category     string
 	Color        string
 	Frequency    string
@@ -53,7 +52,6 @@ func (s *Service) Create(ctx context.Context, command CreateHabitCommand) (habit
 	habitEntity, err = habitdomain.New(command.UserID, habitdomain.HabitConfig{
 		Title:        command.Title,
 		Description:  command.Description,
-		Emoji:        command.Emoji,
 		Category:     command.Category,
 		Color:        command.Color,
 		Frequency:    command.Frequency,
