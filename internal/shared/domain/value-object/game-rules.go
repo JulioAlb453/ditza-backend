@@ -4,7 +4,6 @@ const (
 	MaxActiveHabitsPerUser    = 5
 	MaxHabitTitleLength       = 80
 	MaxHabitDescriptionLength = 160
-	MaxHabitEmojiLength       = 16
 	MaxHabitCategoryLength    = 40
 	MaxHabitColorLength       = 24
 	MaxHabitTargetUnitLength  = 30

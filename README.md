@@ -195,7 +195,6 @@ El token se obtiene al registrarse o iniciar sesión. Expira según `JWT_EXPIRAT
 {
   "title": "Leer",
   "description": "Leer 10 páginas antes de dormir",
-  "emoji": "📚",
   "category": "estudio",
   "color": "blue",
   "frequency": "daily",
@@ -206,7 +205,7 @@ El token se obtiene al registrarse o iniciar sesión. Expira según `JWT_EXPIRAT
 }
 ```
 
-Campos opcionales: `description`, `emoji`, `category`, `color`, `frequency`, `target_count`, `target_unit`, `difficulty`, `reminder_time`. Si solo se envía `title`, el backend aplica valores por defecto. `frequency` acepta `daily`, `weekly` o `specific_days`; `difficulty` acepta `easy`, `medium` o `hard`; `reminder_time` usa formato `HH:MM`.
+Campos opcionales: `description`, `category`, `color`, `frequency`, `target_count`, `target_unit`, `difficulty`, `reminder_time`. Si solo se envía `title`, el backend aplica valores por defecto. `frequency` acepta `daily`, `weekly` o `specific_days`; `difficulty` acepta `easy`, `medium` o `hard`; `reminder_time` usa formato `HH:MM`.
 
 ### Tienda / Cosméticos
 
