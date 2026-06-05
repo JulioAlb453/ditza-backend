@@ -42,6 +42,7 @@ func NewRouter(controllers Controllers) *http.ServeMux {
 	// Habits
 	mux.HandleFunc("GET /habits", controllers.Habit.List)
 	mux.HandleFunc("POST /habits", controllers.Habit.Create)
+	mux.HandleFunc("PATCH /habits/{id}", controllers.Habit.Update)
 	mux.HandleFunc("DELETE /habits/{id}", controllers.Habit.Deactivate)
 	mux.HandleFunc("PATCH /habits/{id}/complete", controllers.HabitCompletion.Complete)
 

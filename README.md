@@ -186,6 +186,7 @@ El token se obtiene al registrarse o iniciar sesión. Expira según `JWT_EXPIRAT
 |---|---|---|---|
 | `GET` | `/habits` | Sí | Listar hábitos activos |
 | `POST` | `/habits` | Sí | Crear hábito |
+| `PATCH` | `/habits/{id}` | Sí | Modificar atributos del hábito |
 | `DELETE` | `/habits/{id}` | Sí | Desactivar hábito |
 | `PATCH` | `/habits/{id}/complete` | Sí | Completar hábito |
 
@@ -206,6 +207,19 @@ El token se obtiene al registrarse o iniciar sesión. Expira según `JWT_EXPIRAT
 ```
 
 Campos opcionales: `description`, `category`, `color`, `frequency`, `target_count`, `target_unit`, `difficulty`, `reminder_time`. Si solo se envía `title`, el backend aplica valores por defecto. `frequency` acepta `daily`, `weekly` o `specific_days`; `difficulty` acepta `easy`, `medium` o `hard`; `reminder_time` es string y puede omitirse, enviarse vacío (`""`) o usar formato `HH:MM`.
+
+**Modificar hábito — body parcial de ejemplo:**
+
+```json
+{
+  "title": "Ejercicio por la mañana",
+  "color": "purple",
+  "target_count": 20,
+  "reminder_time": "09:30"
+}
+```
+
+Solo se actualizan los campos enviados. Para quitar el recordatorio, envía `"reminder_time": ""`.
 
 ### Tienda / Cosméticos
 

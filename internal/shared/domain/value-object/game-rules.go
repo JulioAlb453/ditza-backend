@@ -1,7 +1,6 @@
 package valueobject
 
 const (
-	MaxActiveHabitsPerUser    = 5
 	MaxHabitTitleLength       = 80
 	MaxHabitDescriptionLength = 160
 	MaxHabitCategoryLength    = 40

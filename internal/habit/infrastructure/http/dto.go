@@ -12,6 +12,18 @@ type CreateHabitRequestDTO struct {
 	ReminderTime string `json:"reminder_time,omitempty"`
 }
 
+type UpdateHabitRequestDTO struct {
+	Title        *string `json:"title,omitempty"`
+	Description  *string `json:"description,omitempty"`
+	Category     *string `json:"category,omitempty"`
+	Color        *string `json:"color,omitempty"`
+	Frequency    *string `json:"frequency,omitempty"`
+	TargetCount  *int    `json:"target_count,omitempty"`
+	TargetUnit   *string `json:"target_unit,omitempty"`
+	Difficulty   *string `json:"difficulty,omitempty"`
+	ReminderTime *string `json:"reminder_time,omitempty"`
+}
+
 type HabitResponseDTO struct {
 	HabitID           uint64 `json:"habit_id"`
 	UserID            string `json:"user_id"`

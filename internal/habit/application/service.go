@@ -27,6 +27,20 @@ type CreateHabitCommand struct {
 	ReminderTime string
 }
 
+type UpdateHabitCommand struct {
+	UserID       valueobject.UserID
+	HabitID      valueobject.HabitID
+	Title        *string
+	Description  *string
+	Category     *string
+	Color        *string
+	Frequency    *string
+	TargetCount  *int
+	TargetUnit   *string
+	Difficulty   *string
+	ReminderTime *string
+}
+
 func NewService(habitRepository habitdomain.Repository) *Service {
 	return &Service{habitRepository: habitRepository}
 }
@@ -40,14 +54,6 @@ func (s *Service) Create(ctx context.Context, command CreateHabitCommand) (habit
 		}
 		tracker.Success(map[string]any{"habit_id": habitEntity.ID})
 	}()
-
-	activeCount, err := s.habitRepository.CountActiveByUserID(ctx, command.UserID)
-	if err != nil {
-		return nil, err
-	}
-	if activeCount >= valueobject.MaxActiveHabitsPerUser {
-		return nil, domainerror.New("HABIT_LIMIT_REACHED", "límite de hábitos activos alcanzado", domainerror.ErrHabitLimitReached)
-	}
 
 	habitEntity, err = habitdomain.New(command.UserID, habitdomain.HabitConfig{
 		Title:        command.Title,
@@ -68,6 +74,75 @@ func (s *Service) Create(ctx context.Context, command CreateHabitCommand) (habit
 		return nil, err
 	}
 
+	return habitEntity, nil
+}
+
+func (s *Service) Update(ctx context.Context, command UpdateHabitCommand) (habitEntity *habitdomain.Habit, err error) {
+	tracker := monitoring.StartService(logger.ModelHabit, "update", map[string]any{"user_id": command.UserID, "habit_id": command.HabitID})
+	defer func() {
+		if err != nil {
+			tracker.Fail(err, nil)
+			return
+		}
+		tracker.Success(nil)
+	}()
+
+	habitEntity, err = s.habitRepository.FindByID(ctx, command.HabitID)
+	if err != nil {
+		return nil, err
+	}
+	if habitEntity == nil {
+		return nil, domainerror.New("HABIT_NOT_FOUND", "hábito no encontrado", domainerror.ErrNotFound)
+	}
+	if !habitEntity.BelongsTo(command.UserID) {
+		return nil, domainerror.New("HABIT_NOT_OWNED", "el hábito no pertenece al usuario", domainerror.ErrHabitNotOwned)
+	}
+
+	config := habitdomain.HabitConfig{
+		Title:        habitEntity.Title,
+		Description:  habitEntity.Description,
+		Category:     habitEntity.Category,
+		Color:        habitEntity.Color,
+		Frequency:    habitEntity.Frequency,
+		TargetCount:  habitEntity.TargetCount,
+		TargetUnit:   habitEntity.TargetUnit,
+		Difficulty:   habitEntity.Difficulty,
+		ReminderTime: habitEntity.ReminderTime,
+	}
+	if command.Title != nil {
+		config.Title = *command.Title
+	}
+	if command.Description != nil {
+		config.Description = *command.Description
+	}
+	if command.Category != nil {
+		config.Category = *command.Category
+	}
+	if command.Color != nil {
+		config.Color = *command.Color
+	}
+	if command.Frequency != nil {
+		config.Frequency = *command.Frequency
+	}
+	if command.TargetCount != nil {
+		config.TargetCount = *command.TargetCount
+	}
+	if command.TargetUnit != nil {
+		config.TargetUnit = *command.TargetUnit
+	}
+	if command.Difficulty != nil {
+		config.Difficulty = *command.Difficulty
+	}
+	if command.ReminderTime != nil {
+		config.ReminderTime = *command.ReminderTime
+	}
+
+	if err := habitEntity.Update(config); err != nil {
+		return nil, err
+	}
+	if err := s.habitRepository.Update(ctx, habitEntity); err != nil {
+		return nil, err
+	}
 	return habitEntity, nil
 }
 

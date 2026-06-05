@@ -72,6 +72,45 @@ func (c *Controller) Create(w http.ResponseWriter, r *http.Request) {
 	httpapi.WriteJSON(w, http.StatusCreated, toHabitResponseDTO(*habit))
 }
 
+func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
+	userID, err := httpapi.ReadUserIDFromHeader(r)
+	if err != nil {
+		httpapi.WriteJSON(w, http.StatusUnauthorized, httpapi.ErrorResponse{Code: "UNAUTHORIZED", Message: err.Error()})
+		return
+	}
+
+	habitID, ok := readHabitID(w, r)
+	if !ok {
+		return
+	}
+
+	var request UpdateHabitRequestDTO
+	if err := httpapi.DecodeJSON(r, &request); err != nil {
+		httpapi.WriteJSON(w, http.StatusBadRequest, httpapi.ErrorResponse{Code: "INVALID_BODY", Message: "cuerpo de petición inválido"})
+		return
+	}
+
+	habit, err := c.service.Update(r.Context(), habitapp.UpdateHabitCommand{
+		UserID:       userID,
+		HabitID:      habitID,
+		Title:        request.Title,
+		Description:  request.Description,
+		Category:     request.Category,
+		Color:        request.Color,
+		Frequency:    request.Frequency,
+		TargetCount:  request.TargetCount,
+		TargetUnit:   request.TargetUnit,
+		Difficulty:   request.Difficulty,
+		ReminderTime: request.ReminderTime,
+	})
+	if err != nil {
+		httpapi.WriteError(w, err)
+		return
+	}
+
+	httpapi.WriteJSON(w, http.StatusOK, toHabitResponseDTO(*habit))
+}
+
 func toHabitResponseDTO(habit habitdomain.Habit) HabitResponseDTO {
 	item := HabitResponseDTO{
 		HabitID:       uint64(habit.ID),
@@ -102,17 +141,25 @@ func (c *Controller) Deactivate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	habitIDRaw := r.PathValue("id")
-	habitID, err := strconv.ParseUint(habitIDRaw, 10, 64)
-	if err != nil || habitID == 0 {
-		httpapi.WriteJSON(w, http.StatusBadRequest, httpapi.ErrorResponse{Code: "INVALID_ID", Message: "id de hábito inválido"})
+	habitID, ok := readHabitID(w, r)
+	if !ok {
 		return
 	}
 
-	if err := c.service.Deactivate(r.Context(), userID, valueobject.HabitID(habitID)); err != nil {
+	if err := c.service.Deactivate(r.Context(), userID, habitID); err != nil {
 		httpapi.WriteError(w, err)
 		return
 	}
 
 	httpapi.WriteJSON(w, http.StatusOK, map[string]string{"message": "hábito desactivado"})
+}
+
+func readHabitID(w http.ResponseWriter, r *http.Request) (valueobject.HabitID, bool) {
+	habitIDRaw := r.PathValue("id")
+	habitID, err := strconv.ParseUint(habitIDRaw, 10, 64)
+	if err != nil || habitID == 0 {
+		httpapi.WriteJSON(w, http.StatusBadRequest, httpapi.ErrorResponse{Code: "INVALID_ID", Message: "id de hábito inválido"})
+		return 0, false
+	}
+	return valueobject.HabitID(habitID), true
 }

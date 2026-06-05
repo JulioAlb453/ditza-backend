@@ -80,6 +80,25 @@ func New(userID valueobject.UserID, config HabitConfig) (*Habit, error) {
 	}, nil
 }
 
+func (h *Habit) Update(config HabitConfig) error {
+	normalized, err := normalizeConfig(config)
+	if err != nil {
+		return err
+	}
+
+	h.Title = normalized.Title
+	h.Description = normalized.Description
+	h.Category = normalized.Category
+	h.Color = normalized.Color
+	h.Frequency = normalized.Frequency
+	h.TargetCount = normalized.TargetCount
+	h.TargetUnit = normalized.TargetUnit
+	h.Difficulty = normalized.Difficulty
+	h.ReminderTime = normalized.ReminderTime
+	h.UpdatedAt = time.Now().UTC()
+	return nil
+}
+
 func normalizeConfig(config HabitConfig) (HabitConfig, error) {
 	config.Title = strings.TrimSpace(config.Title)
 	if config.Title == "" {
